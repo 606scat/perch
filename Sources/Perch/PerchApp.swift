@@ -121,6 +121,9 @@ final class PerchPanel: NSPanel {
         store.$selectedNoteID.removeDuplicates().dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { guard let self else { return }; self.resize(expanded: self.store.expanded, animated: true) }
         }.store(in: &cancellables)
+        store.$widgetOffsets.removeDuplicates().dropFirst().sink { [weak self] _ in
+            DispatchQueue.main.async { guard let self, self.store.expanded else { return }; self.resize(expanded: true) }
+        }.store(in: &cancellables)
         store.$data.map { $0.preferences.widgetShortcuts }.removeDuplicates().dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { self?.registerWidgetShortcuts() }
         }.store(in: &cancellables)
@@ -187,6 +190,9 @@ final class PerchPanel: NSPanel {
         let remembered = NSScreen.screens.first { ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value == store.data.preferences.dockDisplayID }
         let screen = remembered ?? dockPanel.screen ?? NSScreen.main ?? NSScreen.screens.first
         guard let screen else { return }
+        let vertical = store.data.preferences.dockEdge.isVertical
+        let limit = max(114, min(vertical ? 640 : 820, (vertical ? screen.visibleFrame.height : screen.visibleFrame.width) - 16))
+        if store.dockLengthLimit != limit { store.dockLengthLimit = limit }
         let layout = DockGeometry.layout(edge: store.data.preferences.dockEdge, fraction: store.data.preferences.dockFraction, visible: screen.visibleFrame,
             compactSize: store.dockSize, panelSize: store.preferredPanelSize, expanded: true, widgetOffset: store.hoveredWidgetOffset)
         func global(_ rect: CGRect) -> CGRect {

@@ -72,9 +72,15 @@ public enum DockEdge: String, Codable, CaseIterable, Sendable {
 
 public enum DockWidget: String, Codable, CaseIterable, Identifiable, Sendable {
     case focus, today, notes, tray, snippets, projects
+    case clipboard, calculator, converter, clocks, countdowns, habits, breathing, awake
+    public static let defaults: [DockWidget] = [.focus, .today, .notes, .tray, .snippets, .projects]
     public var id: String { rawValue }
     public var title: String {
-        switch self { case .focus: "Focus"; case .today: "Today"; case .notes: "Notes"; case .tray: "File tray"; case .snippets: "Snippets"; case .projects: "Projects" }
+        switch self {
+        case .focus: "Focus"; case .today: "Today"; case .notes: "Notes"; case .tray: "File tray"; case .snippets: "Snippets"; case .projects: "Projects"
+        case .clipboard: "Clipboard"; case .calculator: "Calculator"; case .converter: "Converter"; case .clocks: "World clock"
+        case .countdowns: "Countdowns"; case .habits: "Habits"; case .breathing: "Breathing"; case .awake: "Keep awake"
+        }
     }
 }
 
@@ -182,7 +188,7 @@ public struct Preferences: Codable, Equatable, Sendable {
     public var dockEdge: DockEdge = .left
     public var dockFraction: Double = 0.35
     public var dockDisplayID: UInt32?
-    public var widgets: [DockWidget] = DockWidget.allCases
+    public var widgets: [DockWidget] = DockWidget.defaults
     public var widgetShortcuts: [String: WidgetShortcut] = [:]
     public init() {}
     enum CodingKeys: String, CodingKey { case interactionSounds, alertSounds, interactionVolume, alertVolume, focusMinutes, reminderListID, dockEdge, dockFraction, dockDisplayID, widgets, widgetShortcuts, dockVisible, smoothDockMotion, theme, accent, glassBackground }
@@ -205,12 +211,13 @@ public struct Preferences: Codable, Equatable, Sendable {
         widgetShortcuts = try c.decodeIfPresent([String: WidgetShortcut].self, forKey: .widgetShortcuts) ?? [:]
         let rawWidgets = try c.decodeIfPresent([String].self, forKey: .widgets)
         var seen = Set<DockWidget>()
-        widgets = rawWidgets.map { $0.compactMap(DockWidget.init(rawValue:)).filter { seen.insert($0).inserted } } ?? DockWidget.allCases
+        widgets = rawWidgets.map { $0.compactMap(DockWidget.init(rawValue:)).filter { seen.insert($0).inserted } } ?? DockWidget.defaults
     }
 }
 
 public struct AppData: Codable, Equatable, Sendable {
-    public var version = 1
+    public var version = 2
+    public var utilities: UtilityData? = UtilityData()
     public var notes: [Note] = []
     public var noteDraftTitle: String?
     public var noteDraftDetail: String?
@@ -245,8 +252,20 @@ public enum Persistence {
     }
     public static func load(from url: URL) throws -> AppData {
         guard FileManager.default.fileExists(atPath: url.path) else { return AppData() }
-        let data = try JSONDecoder().decode(AppData.self, from: Data(contentsOf: url))
-        guard data.version == 1 else { throw PersistenceError.unsupportedVersion(data.version) }
+        let source = try Data(contentsOf: url)
+        struct Envelope: Decodable { var version: Int }
+        let format = try JSONDecoder().decode(Envelope.self, from: source).version
+        guard (1...2).contains(format) else { throw PersistenceError.unsupportedVersion(format) }
+        var data = try JSONDecoder().decode(AppData.self, from: source)
+        if format == 1 {
+            // The old app must reject format 2, otherwise its next save could
+            // silently drop all new widget data. Preserve the exact old file.
+            let backups = url.deletingLastPathComponent().appendingPathComponent("Migration Backups")
+            try FileManager.default.createDirectory(at: backups, withIntermediateDirectories: true)
+            try source.write(to: backups.appendingPathComponent("format-1-before-2-\(UUID().uuidString).json"), options: .withoutOverwriting)
+            data.version = 2
+        }
+        if data.utilities == nil { data.utilities = UtilityData() }
         return data
     }
     public static func save(_ data: AppData, to url: URL) throws {

@@ -57,6 +57,14 @@ struct PanelView: View {
                 case .projects: ProjectsView()
                 case .settings: SettingsView()
                 case .widgets: WidgetGallery()
+                case .clipboard: ClipboardWidgetView()
+                case .calculator: CalculatorWidgetView()
+                case .converter: ConverterWidgetView()
+                case .clocks: ClocksWidgetView()
+                case .countdowns: CountdownsWidgetView()
+                case .habits: HabitsWidgetView()
+                case .breathing: BreathingWidgetView()
+                case .awake: AwakeWidgetView(controller: store.awake)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

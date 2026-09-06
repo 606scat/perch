@@ -5,7 +5,11 @@ import PerchCore
 
 extension DockWidget {
     var section: Section {
-        switch self { case .focus: .focus; case .today: .today; case .notes: .notes; case .tray: .tray; case .snippets: .snippets; case .projects: .projects }
+        switch self {
+        case .focus: .focus; case .today: .today; case .notes: .notes; case .tray: .tray; case .snippets: .snippets; case .projects: .projects
+        case .clipboard: .clipboard; case .calculator: .calculator; case .converter: .converter; case .clocks: .clocks
+        case .countdowns: .countdowns; case .habits: .habits; case .breathing: .breathing; case .awake: .awake
+        }
     }
     var summary: String {
         switch self {
@@ -15,6 +19,14 @@ extension DockWidget {
         case .tray: "Hold files to drag into other apps."
         case .snippets: "Save reusable text and copy it in one click."
         case .projects: "Group and open links, apps, and folders."
+        case .clipboard: "Keep copied text and paste it again later."
+        case .calculator: "Calculate, reuse history, and copy results."
+        case .converter: "Convert length, weight, temperature, and more."
+        case .clocks: "Compare cities and preview a meeting time."
+        case .countdowns: "Count the days to dates that matter."
+        case .habits: "Check in daily and see your streaks."
+        case .breathing: "Take a short, guided breathing pause."
+        case .awake: "Keep your Mac awake for a chosen duration."
         }
     }
 }
@@ -71,14 +83,54 @@ struct DockRail: View {
     @EnvironmentObject var store: AppStore
     @EnvironmentObject var reminders: ReminderStore
     @Environment(\.accessibilityReduceMotion) var reduceMotion
+    private var vertical: Bool { store.data.preferences.dockEdge.isVertical }
+    private var overflowing: Bool { CGFloat(54 + store.data.preferences.widgets.count * (vertical ? 60 : 58)) > store.dockLengthLimit }
     var body: some View {
         let layout = store.data.preferences.dockEdge.isVertical ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 6))
         layout {
             DockDragHandle(store: store)
                 .frame(width: store.data.preferences.dockEdge.isVertical ? 40 : 14, height: store.data.preferences.dockEdge.isVertical ? 14 : 40)
                 .help("Drag to any screen edge")
+            if overflowing {
+                ScrollViewReader { reader in
+                    ScrollView(vertical ? .vertical : .horizontal, showsIndicators: false) { tiles }
+                        .onChange(of: store.section) { _, _ in revealSelection(reader) }
+                        .onChange(of: store.expanded) { _, expanded in if expanded { revealSelection(reader) } }
+                }
+                .frame(width: vertical ? 52 : max(0, store.dockSize.width - 60), height: vertical ? max(0, store.dockSize.height - 60) : 54)
+                .help("Scroll to reach more widgets")
+            } else { tiles }
+            Button {
+                store.togglePanel(.widgets)
+            } label: {
+                Image(systemName: store.editingWidgets ? "square.grid.2x2" : "plus").font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(store.expanded && store.section == .widgets ? store.accentColor : Palette.secondary).frame(width: vertical ? 52 : 22, height: vertical ? 22 : 52)
+            }.buttonStyle(.plain).help("Add or remove widgets").accessibilityLabel("Add or remove widgets")
+        }
+        .padding(6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .coordinateSpace(name: "PerchRail")
+        .onPreferenceChange(WidgetOffsetPreference.self) { if store.widgetOffsets != $0 { store.widgetOffsets = $0 } }
+        .dockSurface(cornerRadius: 16)
+        .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.88), value: store.data.preferences.widgets)
+        .accentColor(store.accentColor)
+        .foregroundStyle(Palette.primary)
+    }
+    private func revealSelection(_ reader: ScrollViewProxy) {
+        guard let widget = DockWidget.allCases.first(where: { $0.section == store.section }), store.data.preferences.widgets.contains(widget) else { return }
+        let offset = store.widgetOffsets[widget] ?? -1
+        let length = vertical ? store.dockSize.height : store.dockSize.width
+        if offset < 52 || offset > length - 52 { reader.scrollTo(widget, anchor: .center) }
+    }
+    private var tiles: some View {
+        let layout = vertical ? AnyLayout(VStackLayout(spacing: 6)) : AnyLayout(HStackLayout(spacing: 6))
+        return layout {
             ForEach(store.data.preferences.widgets) { widget in
                 DockTile(widget: widget, selected: store.expanded && store.section == widget.section)
+                    .id(widget)
+                    .background(GeometryReader { geometry in
+                        Color.clear.preference(key: WidgetOffsetPreference.self, value: [widget: vertical ? geometry.frame(in: .named("PerchRail")).midY : geometry.frame(in: .named("PerchRail")).midX])
+                    })
                     .overlay(alignment: .topTrailing) {
                         if store.editingWidgets {
                             Button { withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) { store.toggleWidget(widget) } } label: {
@@ -115,22 +167,13 @@ struct DockRail: View {
                         Button("Remove widget") { store.toggleWidget(widget) }
                     }
             }
-            Button {
-                store.togglePanel(.widgets)
-            } label: {
-                Image(systemName: store.editingWidgets ? "square.grid.2x2" : "plus").font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(store.expanded && store.section == .widgets ? store.accentColor : Palette.secondary).frame(width: store.data.preferences.dockEdge.isVertical ? 52 : 22, height: store.data.preferences.dockEdge.isVertical ? 22 : 52)
-            }.buttonStyle(.plain).help("Add or remove widgets").accessibilityLabel("Add or remove widgets")
         }
-        .padding(6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .dockSurface(cornerRadius: 16)
-        .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.88), value: store.data.preferences.widgets)
-
-        .accentColor(store.accentColor)
-        .foregroundStyle(Palette.primary)
-
     }
+}
+
+private struct WidgetOffsetPreference: PreferenceKey {
+    static var defaultValue: [DockWidget: CGFloat] = [:]
+    static func reduce(value: inout [DockWidget: CGFloat], nextValue: () -> [DockWidget: CGFloat]) { value.merge(nextValue(), uniquingKeysWith: { _, new in new }) }
 }
 
 struct DockTile: View {
@@ -196,6 +239,8 @@ struct DockTile: View {
                         HStack(spacing: 4) { RoundedRectangle(cornerRadius: 1).fill(store.accentColor).frame(width: 4, height: 4); Text(name).font(.system(size: 7)).lineLimit(1) }
                     } }.frame(maxHeight: .infinity, alignment: .top)
                 }
+            case .clipboard, .calculator, .converter, .clocks, .countdowns, .habits, .breathing, .awake:
+                UtilityDockTile(widget: widget, selected: selected)
             }
         }
         .padding(5).frame(width: 52, height: 54)
@@ -226,9 +271,13 @@ struct WidgetReorderDrop: DropDelegate {
 
 struct WidgetGallery: View {
     @EnvironmentObject var store: AppStore
+    @State private var query = ""
+    @State private var onlyAdded = false
+    private var matches: [DockWidget] {
+        DockWidget.allCases.filter { (!onlyAdded || store.data.preferences.widgets.contains($0)) && (query.isEmpty || ($0.title + " " + $0.summary).localizedCaseInsensitiveContains(query)) }
+    }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Widgets").font(.system(size: 15, weight: .semibold))
                     Spacer()
@@ -236,8 +285,14 @@ struct WidgetGallery: View {
                     Button("Done") { store.editingWidgets = false; store.expanded = false }.buttonStyle(.borderedProminent).foregroundStyle(Palette.onAccent)
                 }
                 Text("Add widgets. Drag the dock tiles to reorder.").font(.system(size: 11)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    PerchEntry("Find widgets", text: $query).font(.system(size: 11))
+                    Toggle("On dock", isOn: $onlyAdded).toggleStyle(.button).font(.system(size: 11))
+                }
+                ScrollView {
+                if matches.isEmpty { Text("No widgets match. Try another name.").font(.caption).foregroundStyle(Palette.secondary).padding(.vertical, 20) }
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                    ForEach(DockWidget.allCases) { widget in
+                    ForEach(matches) { widget in
                         let enabled = store.data.preferences.widgets.contains(widget)
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 7) {
@@ -247,7 +302,7 @@ struct WidgetGallery: View {
                                 Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { store.toggleWidget(widget) } } label: {
                                     Image(systemName: enabled ? "minus" : "plus").font(.system(size: 12, weight: .semibold))
                                         .foregroundStyle(enabled ? Palette.secondary : Palette.onAccent)
-                                        .frame(width: 22, height: 22).background(enabled ? Palette.rule.opacity(0.08) : store.accentColor.opacity(0.8), in: Circle())
+                                        .frame(width: 22, height: 22).background(enabled ? Palette.rule.opacity(0.08) : store.accentColor, in: Circle())
                                 }.buttonStyle(.plain).help(enabled ? "Remove \(widget.title)" : "Add \(widget.title)")
                                     .accessibilityLabel(enabled ? "Remove \(widget.title)" : "Add \(widget.title)")
                             }
@@ -258,9 +313,9 @@ struct WidgetGallery: View {
                             .background(Palette.rule.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
                     }
                 }
-                Text("Shortcuts also open hidden widgets. Your data stays saved.").font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                }
+                Text("\(DockWidget.allCases.count) widgets · Shortcuts also open hidden widgets.").font(.system(size: 10)).foregroundStyle(Palette.secondary)
             }.padding(14)
-        }
         .onAppear { store.editingWidgets = true }
         .onDisappear { store.editingWidgets = false }
     }

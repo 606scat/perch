@@ -4,6 +4,7 @@ import PerchCore
 
 enum Section: String, CaseIterable, Identifiable {
     case focus = "Focus", today = "Today", notes = "Notes", tray = "Tray", snippets = "Snippets", projects = "Projects", settings = "Settings", widgets = "Widgets"
+    case clipboard = "Clipboard", calculator = "Calculator", converter = "Converter", clocks = "World clock", countdowns = "Countdowns", habits = "Habits", breathing = "Breathing", awake = "Keep awake"
     var id: String { rawValue }
     var symbol: String {
         switch self {
@@ -15,6 +16,14 @@ enum Section: String, CaseIterable, Identifiable {
         case .projects: "square.stack.3d.up"
         case .settings: "slider.horizontal.3"
         case .widgets: "square.grid.2x2"
+        case .clipboard: "clipboard"
+        case .calculator: "plus.forwardslash.minus"
+        case .converter: "arrow.left.arrow.right"
+        case .clocks: "globe"
+        case .countdowns: "calendar.badge.clock"
+        case .habits: "checkmark.circle"
+        case .breathing: "wind"
+        case .awake: "cup.and.saucer"
         }
     }
 }
@@ -49,6 +58,10 @@ enum Section: String, CaseIterable, Identifiable {
     @Published var storageLocked = false
     @Published var selectedNoteID: UUID?
     @Published var undoLabel: String?
+    @Published var breathingSession: BreathingSession? { didSet { configureTicker() } }
+    @Published var dockLengthLimit: CGFloat = 1000
+    @Published var widgetOffsets: [DockWidget: CGFloat] = [:]
+    let awake = AwakeController()
     let reminders: ReminderStore
     let sounds = SoundEngine()
     lazy var notifications = FocusNotifications()
@@ -72,12 +85,13 @@ enum Section: String, CaseIterable, Identifiable {
     var openDialogCount = 0
     var dockSize: CGSize {
         let count = data.preferences.widgets.count
-        let length = CGFloat(54 + count * (data.preferences.dockEdge.isVertical ? 60 : 58))
+        let length = min(dockLengthLimit, CGFloat(54 + count * (data.preferences.dockEdge.isVertical ? 60 : 58)))
         return data.preferences.dockEdge.isVertical ? CGSize(width: 64, height: length) : CGSize(width: length, height: 66)
     }
     var hoveredWidgetOffset: CGFloat {
         if section == .widgets || section == .settings { return (data.preferences.dockEdge.isVertical ? dockSize.height : dockSize.width) - 17 }
         let widget = DockWidget.allCases.first { $0.section == section }
+        if let widget, let offset = widgetOffsets[widget] { return offset }
         let index = widget.flatMap { data.preferences.widgets.firstIndex(of: $0) } ?? 0
         return 52 + CGFloat(index) * (data.preferences.dockEdge.isVertical ? 60 : 58)
     }
@@ -91,6 +105,12 @@ enum Section: String, CaseIterable, Identifiable {
         case .snippets, .projects: height = 360
         case .settings: height = 590
         case .widgets: height = 460
+        case .clipboard, .countdowns, .habits: height = 350
+        case .calculator: height = 410
+        case .converter: height = 295
+        case .clocks: height = 385
+        case .breathing: height = 295
+        case .awake: height = 230
         }
         let feedback: CGFloat = undoLabel != nil || toast != nil ? 52 : 0
         let warning: CGFloat = (error != nil || reminders.error != nil ? 84 : 0) + (storageLocked ? 46 : 0)
@@ -126,7 +146,7 @@ enum Section: String, CaseIterable, Identifiable {
     }
     private var ticker: Timer?
     private var lastPriorityCheck = Date.distantPast
-    var clockInterval: TimeInterval { data.focus?.isRunning == true ? 1 : 60 }
+    var clockInterval: TimeInterval { data.focus?.isRunning == true || breathingSession != nil ? 1 : 60 }
 
     init(demo: Bool = false, dataURLOverride: URL? = nil, connectSystemServices: Bool = true) {
         self.demo = demo
@@ -189,6 +209,11 @@ enum Section: String, CaseIterable, Identifiable {
     }
     func tick(at date: Date = Date()) {
         now = date
+        awake.expire(at: date)
+        if let session = breathingSession, session.remaining(at: date) == 0 {
+            breathingSession = nil
+            if section == .breathing { showToast("Breathing session complete") }
+        }
         if !Calendar.current.isDate(lastPriorityCheck, inSameDayAs: date) {
             var normalized = data
             normalized.normalizePriorities(now: date)

@@ -60,6 +60,7 @@ typography:
     fontSize: "14pt"
     fontWeight: 500
 rounded:
+  utility-field: "7pt"
   field: "8pt"
   feedback: "10pt"
   tile: "12pt"
@@ -67,12 +68,18 @@ rounded:
   flyout: "15pt"
   rail: "16pt"
 spacing:
+  utility-inset: "7pt"
   tile-inset: "5pt"
   rail-gap: "6pt"
   bubble-inset: "8pt"
   card-inset: "12pt"
   content-inset: "14pt"
 components:
+  utility-entry:
+    backgroundColor: "{colors.field}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.utility-field}"
+    padding: "7pt"
   dock-tile:
     backgroundColor: "{colors.tile}"
     textColor: "{colors.foreground}"
@@ -103,6 +110,8 @@ components:
 
 Perch is a native macOS utility built with SwiftUI and AppKit. Its visual authority is the user's Vinz video and screenshot: match the slim charcoal glass dock, inset black tiles, electric blue accents, white system typography, miniature live contents, and small speech-bubble flyouts. The default remains Dark with Blue accent and glass enabled. User-selected Light or System appearance, six accent choices, and solid backgrounds adapt that same compact design; preserve its proportions and density.
 
+Fourteen widgets are available. Focus, Today, Notes, File tray, Snippets, and Projects remain the six defaults; Clipboard, Calculator, Converter, World clock, Countdowns, Habits, Breathing, and Keep awake extend the same visual system.
+
 The interface stays compact and tactile. Hover reveals the relevant tool without stealing keyboard focus; deliberate activation supports typing. Perch remains a provisional product name. The surface contract and reference provenance live in `docs/panel-brief.md` and `PRODUCT.md`.
 
 **Key Characteristics:**
@@ -130,7 +139,7 @@ The main panel defaults to 13pt. Page headings use 14pt semibold, Widgets uses 1
 
 ## Layout
 
-All dimensions here are native logical points, not web CSS physical points. The vertical rail is 64pt wide, with 6pt padding and spacing. Each tile is 52 × 54pt with 5pt internal padding. A grip precedes the widgets and an add control follows them. Horizontal placement changes the stack direction while preserving upright tile contents; the horizontal rail is 66pt high. Rail length follows the number of enabled widgets. The dock tucks to an 18pt peek strip on all four screen edges. Its full native window frame includes the gap to the screen edge so hover stays continuous; the child rail retains its 64pt vertical or 66pt horizontal geometry and clips within the container.
+All dimensions here are native logical points, not web CSS physical points. The vertical rail is 64pt wide, with 6pt padding and spacing. Each tile is 52 × 54pt with 5pt internal padding. A grip precedes the widgets and an add control follows them. Horizontal placement changes the stack direction while preserving upright tile contents; the horizontal rail is 66pt high. Rail length follows the number of enabled widgets, capped at 640pt vertically or 820pt horizontally and further constrained by the screen’s visible frame. When tiles overflow, the grip and add control stay fixed while the middle tile strip scrolls along the rail’s axis without visible scroll indicators. Activating an offscreen enabled tile through its shortcut scrolls it into view; measured tile offsets keep the flyout pointer aligned after scrolling. The dock tucks to an 18pt peek strip on all four screen edges. Its full native window frame includes the gap to the screen edge so hover stays continuous; the child rail retains its 64pt vertical or 66pt horizontal geometry and clips within the container.
 
 The dock and flyout are independent floating AppKit panels. Most flyouts prefer 320pt width; Settings uses 380pt and Widgets uses 400pt. Preferred content heights are state-dependent:
 
@@ -143,6 +152,11 @@ The dock and flyout are independent floating AppKit panels. Most flyouts prefer 
 | Snippets / Projects | 360pt |
 | Settings | 590pt |
 | Widgets | 460pt |
+| Clipboard / Countdowns / Habits | 350pt |
+| Calculator | 410pt |
+| Converter / Breathing | 295pt |
+| World clock | 385pt |
+| Keep awake | 230pt |
 
 Use the screen's visible frame to constrain the flyout. Preserve the pointer's alignment with the selected tile while clamping the bubble and its pointer near screen edges. Content sizing follows the resulting panel frame. Flyout content has an outer 8pt inset and ordinarily 14pt internal padding. Widgets uses a two-column grid with 8pt gaps, 10pt card padding, and 6pt internal vertical spacing.
 
@@ -156,25 +170,39 @@ Flyouts fade and move 8pt outward from the dock when opening. AppKit uses 260ms 
 
 ## Shapes
 
-The rail uses a continuous 16pt rounded rectangle; tiles use continuous 12pt corners. Flyouts have 15pt body corners with an 8pt inset and a small triangular pointer facing the dock edge. Fields and accent actions use 8pt corners, feedback 10pt, and gallery cards 12pt. Circular controls carry add/remove and the Notes save arrow.
+The rail uses a continuous 16pt rounded rectangle; tiles use continuous 12pt corners. Flyouts have 15pt body corners with an 8pt inset and a small triangular pointer facing the dock edge. Notes fields and accent actions use 8pt corners; shared utility fields and calculator keys use 7pt corners, feedback 10pt, and gallery cards 12pt. Circular controls carry add/remove and the Notes save arrow.
 
-`WidgetGlyph` is the sole shared artwork for the six widget identities. Paths are authored on a 24pt grid and rendered with a 1.65pt stroke, round caps, and round joins. Reuse those paths at each required size. Native SF Symbols remain appropriate for generic actions such as settings, copy, delete, and share. Finder supplies file icons.
+`WidgetGlyph` is the sole shared artwork for all fourteen widget identities. Paths are authored on a 24pt grid and rendered with a 1.65pt stroke, round caps, and round joins. Reuse those paths at each required size. Native SF Symbols remain appropriate for generic actions such as settings, copy, delete, and share. Finder supplies file icons.
 
 ## Components
 
-**Dock visibility and clock:** Hovering the peek strip reveals the rail. Retraction waits while a flyout or protected interaction is active. Accessibility exposes the tucked rail as “Show Perch dock” and keeps command-triggered reveal available for use. The clock refreshes every 60 seconds when idle or paused and every second during running focus, with 3s and 0.1s timer tolerance respectively. Wake, activation, and clock-change handling catch up from actual elapsed time.
+**Dock visibility and clock:** Hovering the peek strip reveals the rail. Retraction waits while a flyout or protected interaction is active. Accessibility exposes the tucked rail as “Show Perch dock” and keeps command-triggered reveal available for use. The clock refreshes every 60 seconds when idle or paused and every second during running focus or an active breathing session, with 3s and 0.1s timer tolerance respectively. Wake, activation, and clock-change handling catch up from actual elapsed time.
 
 **Dock tile:** A miniature live summary in an adaptive tile container. Selection adds the chosen accent border; hover brightens the border and subtly scales the tile. The full tile has a named accessibility button action. Dragging reorders widgets. Removing a widget retains its data and timer; Undo restores its original position, bounded by the current widget count.
 
 **Flyout:** Hover enters after 140ms; pointer exit dismisses after a 320ms grace period. Hover does not activate the app or steal keyboard focus. Clicking or invoking a shortcut activates editing. Repeating the current widget shortcut toggles its flyout closed. A command-opened flyout remains reachable before pointer entry. Outside clicks and Escape dismiss; active sheets, dialogs, file receiving, Quick Look, and editing receive the protections implemented in `PerchApp.swift`. Do not add a tiny close button.
 
-**Widget gallery:** Compact two-column cards use a 20pt `WidgetGlyph`, 12pt semibold title, and 22pt circular add/remove control in one header row. Descriptions use 10pt text. The shortcut recorder is a single compact trailing group: keyboard icon and key label stay together at intrinsic width and 19pt height. Cards use shared widget artwork rather than full `DockTile` previews. Hidden widgets remain accessible through their registered shortcuts. Settings and Done live in the compact header.
+**Widget gallery:** A “Find widgets” field searches widget titles and descriptions; the “On dock” filter restricts results to enabled widgets. The header and filter stay above the scrollable two-column results, with a specific no-match message and a fourteen-widget count below. Compact two-column cards use a 20pt `WidgetGlyph`, 12pt semibold title, and 22pt circular add/remove control in one header row. Descriptions use 10pt text. The shortcut recorder is a single compact trailing group: keyboard icon and key label stay together at intrinsic width and 19pt height. Cards use shared widget artwork rather than full `DockTile` previews. Hidden widgets remain accessible through their registered shortcuts. Settings and Done live in the compact header.
 
 **Notes fields:** Two adaptive 25pt fields capture the title and optional description. Focus draws an accent outline on the title field. A 25pt circular selected-accent arrow with `Palette.onAccent` artwork saves; empty or whitespace-only titles disable saving. Return submits. Existing notes appear in a scrolling list; editor changes save automatically. Deletion uses a native confirmation alert and temporary Undo.
 
 **Accent action:** `BlueActionStyle` uses 12pt medium text, 12pt horizontal and 9pt vertical padding, an 8pt corner radius, a faint accent fill, and a 0.7pt accent border. Pressing changes the 10% fill to solid selected accent and switches text to `Palette.onAccent`; disabled styling uses secondary text and weaker fill and border. Other controls use native bordered and bordered-prominent styles with the selected accent.
 
 **Feedback footer:** Undo takes precedence over a toast. Keep the complete row within the flyout's rounded body and reserve its height in panel sizing. The selected-accent Undo action remains visible alongside a two-line message. Removing a tray item only removes its reference; its original file stays in place.
+
+**Utility entry:** `PerchEntry` uses a plain native text field with 7pt padding, adaptive field fill, and 7pt corners. Its explicit empty-state text uses `Palette.secondary`, ignores pointer hits, and is hidden from accessibility; the field itself retains the descriptive accessibility label. Reuse it for widget search, calculations, conversion values, city search, and named entries instead of accepting dimmed native placeholders.
+
+**Clipboard:** A compact manual shelf with Keep copied text, two-line item titles, quiet character/time metadata, and row menus. Clicking a row copies its text. Save as snippet and removal stay nearby; Clear all confirms the item count and offers temporary Undo. Empty copy states explain that capture is deliberate rather than continuous.
+
+**Calculator and Converter:** Monospaced numeric entry and accent results make these small tools easy to scan. Calculator uses a four-column keypad with 5pt gaps, 28pt keys, a solid accent equals key, Return submission, and a native history menu. Converter uses category and unit pickers, a central swap action, a large result, inline invalid-input guidance, and a disabled Copy action when no result is available.
+
+**World clock:** Scrollable city rows pair compact names and date/UTC-offset metadata with 21pt monospaced accent times. A half-hour-step slider previews −12 to +24 hours with a Now reset. Add city opens a searchable native sheet, with duplicate selections disabled and an eight-city limit.
+
+**Countdowns and Habits:** Countdowns pair a large accent day count with a name and date, explicitly showing Today or days ago when appropriate. Habits pair a daily check control and streak label with seven small completion bars and weekday labels. Native sheets edit names and dates; destructive deletion confirms and offers temporary Undo.
+
+**Breathing:** A 136pt outlined circle surrounds a 112pt soft accent disc and the current phase text. A temporary 1, 2, 3, or 5-minute session follows four-second inhale and six-second exhale guidance, with a countdown and End session control. The disc changes scale only while the panel is expanded and system Reduce Motion is off; the reduced-motion presentation retains phase text without scaling. Sessions do not resume after quitting.
+
+**Keep awake:** A compact native duration picker, optional Keep display awake too toggle, and explicit start action become an accent end-time label with a Stop keeping awake control. Copy explains whether the display can sleep. The temporary session stops automatically or on quitting; the UI does not imply that it overrides lid closure.
 
 **Appearance settings:** A segmented System/Light/Dark picker, six named accent circles, and Glass background toggle. The selected accent has a checkmark, selection ring, and accessible selected value. Theme, accent, and glass choices persist independently; defaults remain Dark, Blue, and glass on.
 
@@ -185,6 +213,7 @@ The rail uses a continuous 16pt rounded rectangle; tiles use continuous 12pt cor
 - Do preserve the user's pinned Vinz material, proportions, density, and compact flyout direction.
 - Do reuse `DockTile`, `WidgetGlyph`, semantic `Palette` colors, the selected accent, native material, and native controls.
 - Do let `NSApp.appearance` govern the app and preserve readable light, dark, glass, and solid variants.
+- Do keep the grip and add control reachable when the tile strip overflows, and preserve shortcut-driven selection visibility.
 - Do size feedback with the panel and keep Undo inside the bubble.
 - Do preserve keyboard shortcuts, pointer dismissal protections, accessible labels, and menu-bar access with the dock hidden.
 - Don't replace the native desktop surface with a mobile or web layout.
@@ -192,4 +221,4 @@ The rail uses a continuous 16pt rounded rectangle; tiles use continuous 12pt cor
 - Don't introduce a second widget icon family or rasterize the vector paths.
 - Don't treat removing a widget or a tray reference as deleting the user's underlying data.
 
-Recorded from the local implementation and reviewed captures in `.impeccable/review/`: `dock.png`, `notes-shortcut.png`, `widgets.png`, and `tray-undo.png`. These record the baseline geometry. Appearance captures are `theme-dark-settings.png`, `theme-light-settings.png`, `theme-light-purple-solid.png`, and `theme-light-capture.png`. Documentation records the implemented System fallback policy; external OS appearance changes are not claimed as verified here. Captures are not distribution or cofounder-device validation.
+Recorded from the local implementation and reviewed captures in `.impeccable/review/`: `dock.png`, `notes-shortcut.png`, `widgets.png`, and `tray-undo.png`. These record the baseline geometry. Appearance captures are `theme-dark-settings.png`, `theme-light-settings.png`, `theme-light-purple-solid.png`, and `theme-light-capture.png`. Documentation records the implemented System fallback policy; external OS appearance changes are not claimed as verified here. Extension captures use `widget-*.png`, `widgets-dock-overflow.png`, and `widgets-dock-bottom.png` in the same review directory. Captures are not distribution or cofounder-device validation.

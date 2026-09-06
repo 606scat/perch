@@ -24,7 +24,7 @@ For an optimized local build, use `./scripts/build.sh release`. Shared releases 
 - At rest, the dock tucks into its screen edge and leaves an 18-point strip. Hover the strip to reveal it. After you leave, it waits 3 seconds before easing back in. **Smooth dock motion** in Settings controls this slide independently of macOS Reduce Motion. Open widgets, file drags, and editing keep it available.
 - Hover a widget to open its compact panel. Move away to dismiss a hover-opened panel. A shortcut-opened panel waits for you to enter it; moving the pointer back outside dismisses it. Typing and dialogs keep it open. Clicking the active widget again, clicking outside Perch, Escape, or pressing the same widget shortcut also closes it.
 - Drag the dotted grip to the left, right, top, or bottom of a display. The dock remembers its edge, position, and display.
-- Click **+** to add or remove widgets. Drag tiles to reorder them. Removing a widget preserves its data and running focus session; Undo is available briefly.
+- Click **+** to search 14 widgets, filter to those on your dock, and add or remove them. Drag tiles to reorder them. Long docks scroll between the fixed grip and add button. Removing a widget preserves its data and running sessions; Undo is available briefly. The original six widgets remain the default layout.
 - The small keyboard control below each widget records a global shortcut. Include Command, Control, or Option. Escape cancels recording; Delete clears the shortcut. Press the same shortcut again to close its panel; another widget’s shortcut switches panels. Perch reports duplicates and system registration conflicts.
 - **Control–Option–Space** opens Quick Capture.
 - The bird in the macOS menu bar provides **Hide dock / Show dock**, direct widget access, Quick Capture, focus pause/resume, widget editing, Settings, and Quit. An active focus timer also shows its countdown there.
@@ -44,9 +44,27 @@ For an optimized local build, use `./scripts/build.sh release`. Shared releases 
 
 **Focus:** Start from a task or the Focus widget. Pause/resume or confirm stopping. The timer accounts for sleep and restart. Enable focus notifications in Settings for background alerts. Interaction and alert sounds have separate mute and volume controls.
 
+**Clipboard:** Explicitly keep copied text, then click an item to copy it again or save it as a snippet. Stores up to 30 items locally. It does not monitor your clipboard in the background and skips text marked private or transient by its source app.
+
+**Calculator:** Type an expression or use the keypad. Supports arithmetic, parentheses, powers, and percentages. Reuse the last 20 calculations and copy results. Expressions never execute code or shell commands.
+
+**Converter:** Convert length, weight, temperature, speed, data sizes, and time. Swap units or copy a result. Decimal data units and binary units are labeled separately.
+
+**World clock:** Add up to eight cities and compare their local dates, times, and UTC offsets. Slide the meeting preview across time zones; **Now** returns to live time. Date-specific daylight-saving offsets are automatic.
+
+**Countdowns:** Keep up to 50 named dates in view. Shows days remaining, Today, or days since a past date. Edit the title/date or delete with confirmation and Undo.
+
+**Habits:** Track up to 24 daily habits with a seven-day view and consecutive-day streak. Rename without losing history, uncheck today, or delete with confirmation and Undo. Streaks can continue from yesterday before today's check-in.
+
+**Breathing:** Choose a 1–5 minute session with four-second inhales and six-second exhales. End at any time. The circle respects macOS Reduce Motion; animation runs only while the breathing panel is visible.
+
+**Keep awake:** Keep your Mac awake for 15–180 minutes, optionally keeping the display on. Stop manually, at the deadline, or by quitting Perch. It never restarts itself after relaunch, and closing the lid can still put the Mac to sleep.
+
 ## Local data
 
 Data is saved atomically at `~/Library/Application Support/Perch/data.json`. The file tray stores references and bookmarks to originals. A malformed or newer data file is preserved, with writes disabled until resolved.
+
+Version 0.2.0 migrates format 1 to format 2 only after saving an exact copy in the adjacent `Migration Backups` folder. Earlier apps reject format 2, protecting new widget data from being silently discarded. The installer also makes its normal pre-update backup.
 
 The `--demo` launch argument uses labeled synthetic content and disables persistent writes and live Reminders operations. No analytics or cloud service is used by Perch itself.
 

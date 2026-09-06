@@ -117,7 +117,7 @@ import Testing
     #expect(!prefs.interactionSounds)
     #expect(prefs.focusMinutes == 45)
     #expect(prefs.dockEdge == .left)
-    #expect(prefs.widgets == DockWidget.allCases)
+    #expect(prefs.widgets == DockWidget.defaults)
 }
 
 @Test func widgetsIgnoreUnknownIDsAndDuplicatesWhilePreservingOrder() throws {

@@ -1,81 +1,69 @@
 # Verification — September 6, 2026
 
-Native macOS development build. This report separates local checks, private release publication, and recipient-device validation. It does not claim notarization or public distribution.
+Perch 0.2.0, build 2. This report separates local validation, private release publication, and another Mac's installation. The package is development-signed, not notarized.
 
-## Automated checks
+## Current automated checks
 
-33 tests passed in the latest source test run:
+The final source suite passes **49 tests**. Coverage includes:
 
-- wall-clock focus countdown through sleep/restart; pause/resume; duplicate focus start protection; adaptive idle/running clock cadence, completion after a simulated wake, and timer ownership cleanup
-- priority reset at local midnight, deduplication, and three-task bound
-- atomic data round trip; corrupted and future-version data protection
-- persisted unfinished note drafts and migration from older data
-- safe project URL schemes
-- preferences migration; widget order/unknown-ID handling
-- appearance migration and persistence across all three themes and six accents; unknown-value fallback; adaptive accent text and solid-button foreground contrast of at least 4.5:1 in both native appearances
-- widget removal, preserved data, and Undo restoring the original order
-- per-widget shortcut persistence, physical-key comparison, duplicate/capture-shortcut rejection, and removal; repeated shortcut and widget-editor activation toggles the panel
-- all four edges, external-display coordinates, dock position invariant while flyouts open, small flyout dimensions, bubble pointer alignment at screen clamps, space for transient feedback, and an 18-point reachable dock strip at all four edges on primary/external-display coordinates
-- native Finder-style pasteboard file URLs, multi-file deduplication, spaces and Unicode, non-file rejection
-- native drag destination registration, drag entry opening the tray, successful insertion of a real temporary file, preservation of its original, and locked-storage rejection
-- note create/edit/delete/undo, file add/remove/undo, and focus state changes
+- Focus countdown through sleep/restart, pause/resume, duplicate start protection, idle/running clock cadence, completion after wake, and timer cleanup.
+- Daily priorities, notes/drafts, snippets, file references/bookmarks, project URL safety, widget order/Undo, shortcut conflicts and toggling, menu-bar access, and appearance persistence/contrast.
+- Four dock edges, external-display coordinates, pointer clamping, small flyouts, feedback height, the reachable peek strip, and all 14 widget selections under a constrained rail length.
+- Native Finder file URL decoding and drag destination integration, original-file preservation, and locked-storage rejection.
+- Calculator precedence, unary operators, percentages, scientific notation, invalid input, division by zero, non-finite results, and bounded expressions/history.
+- Unit conversions including temperature offsets, fractional units, decimal/binary data sizes, and reverse conversions across every compatible unit pair.
+- Habit local-day and daylight-saving boundaries, streak continuation from yesterday, rename/history preservation, deletion/Undo, and past/today/future countdowns.
+- Manual clipboard capture, exact text preservation, deduplication, size/history limits, source privacy markers, and deletion/Undo.
+- World-clock seasonal offsets and fractional time zones, modern/legacy city search aliases, breathing elapsed-time phases/completion, and temporary session restart behavior.
+- Keep Awake assertion creation, duplicate starts, timed expiry, partial-creation failure cleanup, and deinitialization cleanup with an injected backend.
+- Format 1 migration with an exact backup and preserved collections/preferences; format 2 utility round-trip; future-format rejection; migration-backup failure locking writes without changing the original file.
+- Exclusive data ownership, installer/app exclusion, immediate quit-time saving, failed-save retention, and reopening saved content.
 
-## Live UI checks
+The final universal package passes **8 isolated installer scenarios**: existing-data first install, fresh install, same-build no-op, upgrade with exact data/prior-app backups, downgrade rejection, damaged archive rejection, concurrent installer rejection, and unavailable-download failure. Temporary paths include spaces and Unicode. These tests do not install over the owner's app or use the owner's data.
 
-Verified in the actual built app: compact dock and notes panel rendering, widget gallery, add/remove/Undo, notes creation and deletion confirmation, timer pause, shortcut recording and opening Notes while Perch is active, and the blue Reminders connection button. Test note was removed through its confirmation dialog. The Notes shortcut Control–Option–N remains configured from the keyboard check.
+Logs: `.impeccable/review/widgets-tests-final.log`, `widgets-installer-final.log`, and `widgets-package.log`.
 
-The final optimized release build and strict local signature verification passed. Live screenshots confirm the shared feature icons, compact Notes panel, and a contained Undo footer on the empty file tray. A temporary reference to the project README was added and removed through the UI; the original remains intact. Undo restoration is covered by automated tests. The footer capture is `.impeccable/review/tray-undo.png`.
+## Live checks for the new widgets
 
-## Remaining integration gates
+| Behavior | Observed result |
+| --- | --- |
+| Widget library | All 14 entries, search, adding/removing all eight additions, and lower rows reached by scrolling. |
+| Long dock | 640pt vertical cap; scrolling reaches the lower widgets while grip and add stay visible. Other-edge dimensions also have automated coverage. |
+| Calculator | Entered `2+3*4`, received `14`, and copied the result. History appeared and survived restart. |
+| Clipboard | Explicitly captured that known test result and displayed its exact text/count. No background capture was enabled. |
+| Converter | Rendered a meters-to-feet conversion and swapped the units. Final swap uses the full numeric value to avoid a display-rounding round trip. |
+| World clock | Live local times/dates/UTC offsets rendered. The corrected Kolkata search returned `Asia/Kolkata`. |
+| Countdowns | Created a named date seven days ahead, displayed seven days left, then deleted through confirmation. |
+| Habits | Created a habit, completed today, observed the seven-day marker and one-day streak, then deleted through confirmation. |
+| Breathing | Began a one-minute session, observed the phase/countdown, and ended it. |
+| Keep Awake | Started a timed session; `pmset` showed Perch's `PreventUserIdleSystemSleep` assertion with timeout release. Stop removed the assertion. |
+| Appearance | New widget captures in Dark; new calculator capture in Light. The selected appearance follows the existing shared semantic palette. |
+| Data migration | The owner's prior JSON has an exact migration backup. Existing saved collections and non-test preferences were preserved. The original six-widget layout and Dark/Blue/glass preferences were restored after testing. |
 
-The user confirmed physical file dropping and a widget shortcut opening from another foreground app during this session. Multi-display physical dragging, background notification delivery, login startup, and Apple Reminders account operations still need live verification. This agent did not grant Reminders permissions or change account tasks. The current release build shows the Connect state; do not infer current permission from an earlier build. No claim of zero possible defects or release readiness is made.
+The temporary habit/countdown were deleted through their dialogs. Known calculator/clipboard test entries were removed afterward while the app was quit and the data lease was held. Temporary shortcut configuration was cleared. Existing user data was not replaced with a test fixture.
 
-The current file tray accepts existing local file/folder URLs. Promised-file drags that have no local URL yet (some browser, Mail, or screenshot-thumbnail sources) are not implemented.
+The independent fresh finishing reviewer returned **ship** with no material findings in the eight widgets, gallery, capped dock, migration, and associated source/tests. It inspected all eight widget captures, both gallery positions, both dock scroll positions, corrected city search, and Light calculator. This is a scoped local verdict, not a guarantee against every possible defect.
 
-The independent finishing reviewer returned **ship** for the bounded verdict pass: feedback sizing, clamped pointer alignment, original widget order after Undo, tray Undo containment, and feature icon consistency were all resolved. This verdict covers those findings, not every possible app or integration scenario.
+## Earlier evidence still applicable
+
+The user physically verified file dropping and a global widget shortcut opening from another foreground app. Earlier actual-app checks covered notes create/edit/delete, file remove/Undo, focus pause, shortcut recording/toggling, Quick Capture, compact flyouts, and contained feedback. Appearance checks covered Dark/blue/glass, Light/blue/glass, Light/purple/solid, persistence after restart, sheet accent inheritance, and switching Light back to System on this currently Dark Mac.
+
+Quit-time protection was exercised in the packaged app: an open Quick Capture editor canceled normal termination; canceling that empty editor then allowed a normal quit. The new editors use the same native attached-sheet protection. macOS Reduce Motion remains enabled on this Mac; Perch's separate Smooth dock motion option provides the user-requested dock animation.
 
 ## Resource behavior
 
-The optimized native app bundle is approximately 5.4 MB. A baseline 20-second paused-focus sample averaged 0.8% of one CPU core, with a 31 MB physical footprint. The clock now refreshes once per minute when idle or paused, and once per second during an active focus session, with timer tolerance. Daily priority normalization runs only when the day changes. Wake, activation, and clock changes refresh wall-clock state. Timer/task cleanup is covered by a store-lifetime regression test.
+No new network polling or clipboard observer was added. The shared clock runs once per minute while idle/paused and once per second for active focus or breathing; wake/clock-change events catch up from wall time. Breathing animation is capped at 30 frames per second only in its visible panel and is disabled for Reduce Motion. Keep Awake uses native timed assertions and a one-shot cleanup timer. Colors are cached native providers; solid appearance removes the visual-effect view.
 
-A subsequent 20-second sample during user interaction measured 1.45% CPU and a 28.5 MB physical footprint; because the interaction state differed, this does not establish a CPU reduction. Measurements are short observations on this Mac, not a long-session leak guarantee.
+Earlier v0.1.0 short idle observations measured CPU rounded to 0.0% at `ps` resolution and a 27 MB physical footprint over 20 seconds. Those measurements predate the new widgets and are not a benchmark for v0.2.0 or a long-session leak guarantee.
 
-The final gallery uses a 400×460 panel with functional descriptions and grouped keyboard controls. Dock reveal/tuck uses 0.34/0.30-second easing, waits 3 seconds before tucking, and keeps the screen-edge gap in its tracking region. Independent final review returned **ship** at the inspected source/screenshot scope; physical hover timing, VoiceOver traversal, and multi-display movement remain device checks.
+## Package and remaining gates
 
-Final release sample after closing the gallery with focus paused: 20.01 seconds, CPU rounded to 0.0% of one core at `ps` timing resolution, physical footprint 27.0 MB, RSS stable at 88.44 MiB. The earlier baseline used the fully visible dock; this final sample uses the tucked dock. Physical footprint and RSS measure different things; RSS includes resident shared mappings. Raw final observations are in `.impeccable/review/performance-final.json`.
+The optimized universal package contains arm64 and x86_64 slices targeting macOS 14, with system frameworks only. Strict signature verification passed using the same Apple Development identity and hardened runtime. The ZIP is approximately 4 MB. It is not Developer ID signed or notarized.
 
-## Animation correction after user feedback
+Physical world-clock slider adjustment was not verified: the automation adapter could read it but did not successfully adjust it. Its native SwiftUI binding and date-specific conversion math were reviewed, with the math tested. Physical horizontal/multi-display dock movement, VoiceOver traversal, every new panel in every accent/theme, externally changing System appearance while running, background notifications, login startup, and Apple Reminders account operations remain device/integration checks. No Reminders permissions were granted or account tasks changed by the agent. The current app shows Connect for Reminders.
 
-The user observed a blink instead of the slide. Both the macOS preference and the live AppKit API reported Reduce Motion enabled; the previous window-animation guard therefore skipped every slide. Perch now has its own persisted **Smooth dock motion** preference (enabled for the user's explicit request). The running Settings UI reports it checked while the system setting remains enabled. Shortcut/click opening also uses the animated path, and unchanged frame/opacity targets no longer restart transitions. The setting migration and disabled-value persistence are covered by the 26-test suite. Endpoint screenshots alone do not verify perceived animation smoothness.
+File tray supports existing local file/folder URLs. Promised-file drags without a local URL are not implemented. A cofounder's Mac still needs macOS 14+, repository access, first-open approval for this development build, and its own Reminders/notification consent. Intel execution and installation on the actual recipient Mac were not exercised. macOS governs permission retention across signed updates.
 
-## Appearance extension
+## Private release delivery
 
-The running optimized app was checked in Dark/blue/glass, Light/blue/glass, and Light/purple/solid configurations. Light/purple/solid survived restarting the app. Quick Capture visibly follows the chosen theme and purple accent. System mode was checked both at launch and when switching back from Light; it resolves to this Mac's current Dark appearance. Changing the operating system appearance while Perch remains open was not exercised.
-
-Live QA caught a sheet retaining system blue and a stale window override when returning to System. Editor roots now explicitly inherit the selected accent, and NSApp.appearance is the sole theme authority. Notes uses semantic-color empty-field labels to avoid native placeholder dimming; action buttons use a fully opaque accent and contrasting foreground while pressed. Defaults were restored to Dark, Blue, and Glass background enabled after verification.
-
-Colors are cached immutable native dynamic providers. Theme changes use the existing preference publisher, without polling. Solid mode removes the NSVisualEffectView instead of merely covering it. The earlier resource measurements predate this appearance extension; no additional CPU-reduction claim is made for these options.
-
-Theme evidence is in `.impeccable/review/theme-*.png`; the latest test output is `.impeccable/review/tests-final.log`.
-
-The independent appearance reviewer returned **ship** after confirming the pressed-action contrast, Notes empty-field labels, System transition, and sheet accent fixes. This verdict is limited to those scored appearance changes.
-
-## Private release and update safety
-
-The final source suite passed **33 tests**. New coverage checks older saved collections/preferences/bookmarks, exclusive ownership of the data file, installer/app exclusion, immediate quit-time saving before debounce, a failed save retaining in-memory edits for retry, and reopening saved notes/drafts/appearance choices. The earlier UI/theme evidence remains valid apart from the Settings version label, which now reads the bundle's actual version and build.
-
-The real installer passed **8 isolated scenarios** under paths containing spaces and Unicode: first installation over existing data, fresh installation without seeded owner/sample data, same-build no-op, upgrade retaining the entire live data file byte-for-byte with verified data and prior-app backups, downgrade rejection, damaged archive rejection, concurrent-installer rejection, and unavailable-download failure. Test processes did not install over the user's app or use the user's data folder.
-
-The optimized `0.1.0` build `1` package is approximately **3.4 MB zipped** and **9.3 MB unpacked**. Both arm64 and x86_64 slices target macOS 14.0. Runtime dependencies are system libraries/frameworks only. Strict code-signature verification passed with the existing Apple Development identity and hardened runtime; the package is not Developer ID signed or notarized.
-
-The packaged app launched on this Mac. A normal Apple-event quit with Quick Capture open returned user-canceled and preserved the editor. After canceling that empty verification editor, normal quit succeeded. The user's actual saved JSON had the identical SHA-256 before launch and after quit. No test note or account task was added. This confirms that exercised restart path, not every possible future schema migration.
-
-Remaining recipient gates: private-repository access, macOS 14+, first-open approval for this development build, and Reminders/notification consent on the cofounder's Mac. Intel execution and actual recipient installation were not exercised. An update preserves app-owned data; macOS permission retention is governed by signing identity and OS policy and is not guaranteed.
-
-Release preparation, installer instructions, compatibility rules, backup recovery, and publication read-back are documented in `AGENTS.md`, `docs/INSTALL.md`, and `docs/RELEASING.md`. Build output, review captures, credentials, and local data are excluded from source delivery.
-
-## Publication verified
-
-Source commit `607c9bf` and tag `v0.1.0` were pushed to the existing private repository without replacing its history. [Perch v0.1.0](https://github.com/606scat/perch/releases/tag/v0.1.0) was published with the universal app ZIP, installer, and checksums. All three assets were downloaded from GitHub and matched their local counterparts byte-for-byte. The downloaded installer then successfully fetched the latest published release itself and installed it into an isolated temporary destination. This verifies the actual GitHub download path for the owner's authenticated account; the recipient still needs repository access.
-
-The packaged app is running on the owner's Mac. No build, test, installer, or publication job remains active. This task does not need to remain open for future updates; follow `docs/RELEASING.md` for a new release and `docs/INSTALL.md` on the recipient's Mac.
+The earlier v0.1.0 release and all three assets were verified by download, including an isolated install through its downloaded installer. Version 0.2.0 uses that same installer and private repository. Publication read-back for the new version will be recorded after it completes.
