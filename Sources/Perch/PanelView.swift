@@ -65,6 +65,12 @@ struct PanelView: View {
                 case .habits: HabitsWidgetView()
                 case .breathing: BreathingWidgetView()
                 case .awake: AwakeWidgetView(controller: store.awake)
+                case .colors: ColorsWidgetView()
+                case .qr: QRWidgetView()
+                case .textTools: TextToolsWidgetView()
+                case .decisions: DecisionsWidgetView()
+                case .doodle: DoodleWidgetView()
+                case .garden: GardenWidgetView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

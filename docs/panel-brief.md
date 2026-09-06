@@ -18,4 +18,4 @@ FINISH: Finish review, verdict, DESIGN.md and asset provenance accompany the loc
 
 ## Scope
 
-Personal and cofounder use through the private GitHub repository. Apple Reminders access is opt-in and scoped in app behavior to a chosen writable list. Notes, snippets, and shortcuts work without access. File tray holds references to originals. Original synthesized sounds; no sampled audio. Preview mode is separate from saved user data. Private install/update packages preserve local data; public distribution and notarization remain separate delivery choices.
+Public open-source Mac utility distributed through GitHub. Apple Reminders access is opt-in and scoped in app behavior to a chosen writable list. Notes, snippets, and shortcuts work without access. File tray holds references to originals. Original synthesized sounds; no sampled audio. Preview mode is separate from saved user data. A disk image and native signed-feed updater provide installation and updates. Local data is saved and backed up first. The initial public beta retains an explicit signing/notarization limitation.

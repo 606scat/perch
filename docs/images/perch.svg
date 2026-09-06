@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Perch">
+  <rect x="70" y="70" width="884" height="884" rx="198" fill="#171717" stroke="#474747" stroke-width="3"/>
+  <path d="M263 603C277 477 378 394 488 421C494 303 604 264 665 298C709 319 734 363 727 407L804 435L723 462C696 566 600 635 477 638L392 695L403 627L281 664Z" fill="#47a8ff"/>
+  <path d="M346 559C412 462 514 449 579 477C534 568 437 598 346 559Z" fill="#2470c4"/>
+  <circle cx="655" cy="369" r="12" fill="#171717"/>
+  <rect x="300" y="731" width="420" height="16" rx="8" fill="#737373"/>
+</svg>

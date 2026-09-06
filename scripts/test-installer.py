@@ -23,7 +23,7 @@ def command(*args, expect=0):
 def package(folder, build):
     folder.mkdir()
     app = folder / "Perch.app"
-    command("/usr/bin/ditto", ROOT / "build/distribution/Perch.app", app)
+    command("/usr/bin/ditto", "-x", "-k", RELEASE / "Perch-macOS-universal.zip", folder)
     info = app / "Contents/Info.plist"
     data = plistlib.loads(info.read_bytes())
     data["CFBundleVersion"] = str(build)

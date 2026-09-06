@@ -5,6 +5,7 @@ import PerchCore
 enum Section: String, CaseIterable, Identifiable {
     case focus = "Focus", today = "Today", notes = "Notes", tray = "Tray", snippets = "Snippets", projects = "Projects", settings = "Settings", widgets = "Widgets"
     case clipboard = "Clipboard", calculator = "Calculator", converter = "Converter", clocks = "World clock", countdowns = "Countdowns", habits = "Habits", breathing = "Breathing", awake = "Keep awake"
+    case colors = "Color picker", qr = "QR code", textTools = "Text tools", decisions = "Quick decisions", doodle = "Doodle", garden = "Tiny garden"
     var id: String { rawValue }
     var symbol: String {
         switch self {
@@ -24,6 +25,7 @@ enum Section: String, CaseIterable, Identifiable {
         case .habits: "checkmark.circle"
         case .breathing: "wind"
         case .awake: "cup.and.saucer"
+        case .colors: "eyedropper"; case .qr: "qrcode"; case .textTools: "textformat"; case .decisions: "dice"; case .doodle: "scribble.variable"; case .garden: "leaf"
         }
     }
 }
@@ -35,6 +37,7 @@ enum Section: String, CaseIterable, Identifiable {
             now = Date()
             configureTicker()
         }
+        if oldValue.play?.relax != data.play?.relax, let session = breathingSession, !demo { relaxAudio.update(session: session, settings: play.relax, at: Date()) }
     } }
     @Published var section: Section = .today
     @Published var expanded = true
@@ -58,10 +61,13 @@ enum Section: String, CaseIterable, Identifiable {
     @Published var storageLocked = false
     @Published var selectedNoteID: UUID?
     @Published var undoLabel: String?
-    @Published var breathingSession: BreathingSession? { didSet { configureTicker() } }
+    @Published var breathingSession: BreathingSession? { didSet { configureTicker(); if breathingSession == nil { relaxAudio.stop() } } }
     @Published var dockLengthLimit: CGFloat = 1000
     @Published var widgetOffsets: [DockWidget: CGFloat] = [:]
     let awake = AwakeController()
+    let relaxAudio = RelaxAudio()
+    var updates: UpdateController?
+    var colorSampler: NSColorSampler?
     let reminders: ReminderStore
     let sounds = SoundEngine()
     lazy var notifications = FocusNotifications()
@@ -109,8 +115,14 @@ enum Section: String, CaseIterable, Identifiable {
         case .calculator: height = 410
         case .converter: height = 295
         case .clocks: height = 385
-        case .breathing: height = 295
+        case .breathing: height = breathingSession == nil ? 410 : 370
         case .awake: height = 230
+        case .colors: height = 340
+        case .qr: height = 410
+        case .textTools: height = 380
+        case .decisions: height = 355
+        case .doodle: height = 330
+        case .garden: height = 350
         }
         let feedback: CGFloat = undoLabel != nil || toast != nil ? 52 : 0
         let warning: CGFloat = (error != nil || reminders.error != nil ? 84 : 0) + (storageLocked ? 46 : 0)
@@ -123,7 +135,11 @@ enum Section: String, CaseIterable, Identifiable {
                 guard let self, !self.data.preferences.widgets.contains(widget) else { return }
                 self.data.preferences.widgets.insert(widget, at: min(originalIndex, self.data.preferences.widgets.count))
             }
-        } else { data.preferences.widgets.append(widget); sounds.play(.drop, preferences: data.preferences) }
+        } else {
+            let rank = DockWidget.libraryOrder.firstIndex(of: widget) ?? Int.max
+            let index = data.preferences.widgets.firstIndex { (DockWidget.libraryOrder.firstIndex(of: $0) ?? Int.max) > rank } ?? data.preferences.widgets.endIndex
+            data.preferences.widgets.insert(widget, at: index); sounds.play(.drop, preferences: data.preferences)
+        }
     }
     func activateWidgetShortcut(_ widget: DockWidget) { togglePanel(widget.section) }
     func togglePanel(_ target: Section) {
@@ -169,6 +185,7 @@ enum Section: String, CaseIterable, Identifiable {
             loaded.preferences.interactionSounds = false
         }
         data = loaded; error = loadError; storageLocked = loadError != nil
+        relaxAudio.errorHandler = { [weak self] in self?.error = $0 }
         reminders.selectedCalendarID = data.preferences.reminderListID
         if systemServicesEnabled { notifications.errorHandler = { [weak self] message in self?.error = message } }
         lastPriorityCheck = now
@@ -212,7 +229,10 @@ enum Section: String, CaseIterable, Identifiable {
         awake.expire(at: date)
         if let session = breathingSession, session.remaining(at: date) == 0 {
             breathingSession = nil
-            if section == .breathing { showToast("Breathing session complete") }
+            if !demo { relaxAudio.finish(withVoice: play.relax.voiceEnabled) }
+            if section == .breathing { showToast("Relax session complete") }
+        } else if let session = breathingSession, !demo {
+            relaxAudio.update(session: session, settings: play.relax, at: date)
         }
         if !Calendar.current.isDate(lastPriorityCheck, inSameDayAs: date) {
             var normalized = data
@@ -221,6 +241,7 @@ enum Section: String, CaseIterable, Identifiable {
             lastPriorityCheck = date
         }
         if let focus = data.focus, focus.isRunning, focus.remaining(at: now) <= 0 {
+            play.garden.finishFocus(duration: focus.duration)
             data.focus = nil
             if !demo { sounds.play(.finish, preferences: data.preferences) }
             showToast("Focus complete · \(focus.title)")

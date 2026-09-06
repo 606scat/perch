@@ -4,3 +4,9 @@ dist/
 .DS_Store
 .impeccable/review/
 .impeccable/config.local.json
+.env
+.env.*
+*.p12
+*.p8
+*.privatekey
+*.keychain-db

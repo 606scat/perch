@@ -37,7 +37,7 @@ final class PerchPanel: NSPanel {
     private var dataLease: PersistenceLease?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let demo = CommandLine.arguments.contains("--demo")
+        let demo = CommandLine.arguments.contains("--demo") || Bundle.main.object(forInfoDictionaryKey: "PerchPreview") as? Bool == true
         do { dataLease = try PersistenceLease(dataURL: Persistence.defaultDataURL(demo: demo)) }
         catch {
             let alert = NSAlert()
@@ -47,6 +47,7 @@ final class PerchPanel: NSPanel {
             NSApp.terminate(nil); return
         }
         store = AppStore(demo: demo)
+        if !demo { store.updates = UpdateController(store: store) }
         NSApp.appearance = store.data.preferences.theme.appearance
         store.hoverChanged = { [weak self] inside in self?.hover(inside, pointerEvent: true) }
         store.dockHoverChanged = { [weak self] inside in self?.dockHover(inside) }
@@ -123,6 +124,9 @@ final class PerchPanel: NSPanel {
         }.store(in: &cancellables)
         store.$widgetOffsets.removeDuplicates().dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { guard let self, self.store.expanded else { return }; self.resize(expanded: true) }
+        }.store(in: &cancellables)
+        store.$breathingSession.map { $0 != nil }.removeDuplicates().dropFirst().sink { [weak self] _ in
+            DispatchQueue.main.async { guard let self, self.store.section == .breathing else { return }; self.resize(expanded: self.store.expanded, animated: true) }
         }.store(in: &cancellables)
         store.$data.map { $0.preferences.widgetShortcuts }.removeDuplicates().dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { self?.registerWidgetShortcuts() }
@@ -329,11 +333,16 @@ final class PerchPanel: NSPanel {
     @objc func quickCapture() { showPanel(); store.capturePresented = true }
     @objc func showSettings() { showPanel(); store.section = .settings }
     @objc func becameActive() { store?.tick(); store?.reminders.refresh() }
-    @objc private func clockChanged() { store?.tick() }
+    // Calendar-day notifications can arrive on a background queue. Objective-C
+    // notification delivery does not perform Swift's main-actor hop for us.
+    @objc nonisolated func clockChanged() {
+        Task { @MainActor [weak self] in self?.store?.tick() }
+    }
     @objc func resignedActive() { if panel != nil { hover(containsMouse()) } }
     @objc func menuOpened() { menuTracking = true; hoverTask?.cancel() }
     @objc func menuClosed() { menuTracking = false; if panel != nil { hover(containsMouse()) } }
     @objc func quit() { NSApp.terminate(nil) }
+    @objc func checkForUpdates() { store.updates?.check() }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if let store, panel?.attachedSheet != nil || store.capturePresented || store.openDialogCount > 0 {
             let alert = NSAlert()
@@ -348,6 +357,10 @@ final class PerchPanel: NSPanel {
             alert.informativeText = store.error ?? "Check available disk space and folder access, then quit again."
             alert.addButton(withTitle: "Keep Perch open"); alert.runModal()
             return .terminateCancel
+        }
+        if store?.updates?.installationPrepared == true {
+            do { try store.prepareForUpdate() }
+            catch { store.error = "The update was paused: \(error.localizedDescription)"; return .terminateCancel }
         }
         return .terminateNow
     }
@@ -404,7 +417,7 @@ final class PerchPanel: NSPanel {
         item(store.data.preferences.dockVisible ? "Hide dock" : "Show dock", #selector(toggleDockVisibility))
         item("Quick capture   ⌃⌥Space", #selector(quickCapture))
         menu.addItem(.separator())
-        for widget in DockWidget.allCases {
+        for widget in DockWidget.libraryOrder {
             let shortcut = store.data.preferences.widgetShortcuts[widget.rawValue]?.display
             let item = menu.addItem(withTitle: widget.title + (shortcut.map { "   " + $0 } ?? ""), action: #selector(openWidgetFromMenu(_:)), keyEquivalent: "")
             item.target = self; item.representedObject = widget.rawValue
@@ -419,6 +432,10 @@ final class PerchPanel: NSPanel {
         menu.addItem(.separator())
         item("Edit widgets & shortcuts…", #selector(showWidgets))
         item("Settings…", #selector(showSettings))
+        if let updates = store.updates {
+            let check = menu.addItem(withTitle: "Check for updates…", action: #selector(checkForUpdates), keyEquivalent: "")
+            check.target = self; check.isEnabled = updates.canCheck
+        }
         menu.addItem(.separator())
         item("Quit Perch", #selector(quit))
     }

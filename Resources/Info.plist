@@ -6,14 +6,20 @@
 <key>CFBundleIdentifier</key><string>local.af.perch</string>
 <key>CFBundleExecutable</key><string>Perch</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.2.0</string>
-<key>CFBundleVersion</key><string>2</string>
-<key>PerchDataFormatVersion</key><integer>2</integer>
+<key>CFBundleShortVersionString</key><string>0.3.0</string>
+<key>CFBundleVersion</key><string>3</string>
+<key>PerchDataFormatVersion</key><integer>3</integer>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>LSUIElement</key><true/>
 <key>LSMultipleInstancesProhibited</key><true/>
 <key>NSHighResolutionCapable</key><true/>
+<key>SUFeedURL</key><string>https://raw.githubusercontent.com/606scat/perch/main/appcast.xml</string>
+<key>SUPublicEDKey</key><string>0pExOShjCAJ4h8qRRyx8NWG2Fru5kUGhn/9qYLxEtpw=</string>
+<key>SURequireSignedFeed</key><true/>
+<key>SUVerifyUpdateBeforeExtraction</key><true/>
+<key>SUAllowsAutomaticUpdates</key><false/>
+<key>SUSendProfileInfo</key><false/>
 <key>NSRemindersFullAccessUsageDescription</key><string>Perch shows, creates, and completes tasks in the Apple Reminders list you choose. Perch does not share your tasks.</string>
 <key>NSRemindersUsageDescription</key><string>Perch brings your chosen Apple Reminders list into your desktop panel.</string>
 </dict></plist>

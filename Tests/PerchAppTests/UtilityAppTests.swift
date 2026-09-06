@@ -113,7 +113,7 @@ private final class FakePowerAssertions: PowerAssertionBackend {
     store.section = .breathing; #expect(store.clockInterval == 1)
     store.tick(at: now.addingTimeInterval(61))
     #expect(store.breathingSession == nil && store.clockInterval == 60)
-    #expect(store.toast == "Breathing session complete")
+    #expect(store.toast == "Relax session complete")
 }
 
 @Test func worldClockUsesDateSpecificOffsetsAndFractionalTimeZones() {

@@ -1,39 +1,36 @@
-# Install or update Perch
+# Install & update Perch
 
-Perch supports Apple Silicon and Intel Macs running macOS 14 or later. Use the same process for a fresh installation or an update. No Xcode or Swift build is needed.
+Requires macOS 14 or later. The same download supports Apple Silicon and Intel Macs.
 
-## Ask Codex on the other Mac
+## Install
 
-> Install or update Perch from the latest release of https://github.com/606scat/perch. Read its AGENTS.md and docs/INSTALL.md. Use the release installer, keep all existing Perch data, and verify the installed version and that it opens. If access or macOS approval is needed, tell me the exact step. Do not build from main, reset data or permissions, or disable Gatekeeper.
+1. [Download Perch.dmg](https://github.com/606scat/perch/releases/latest/download/Perch.dmg).
+2. Open the disk image and drag **Perch** to **Applications**.
+3. Open Perch from Applications. Look for its bird in the menu bar and the slim dock at the screen edge.
+4. Eject the disk image.
 
-## One command sequence
+You do not need GitHub, Terminal, Xcode, or Codex to use Perch.
 
-The repository is private. Its owner must first give your cofounder's GitHub account read access. Install GitHub CLI if needed, then run `gh auth login` under that account. Codex can help with those steps. Do not share account credentials.
+The app is signed with Developer ID and notarized by Apple. macOS may ask you to confirm that you want to open an app downloaded from the internet. If it instead reports a damaged or blocked app, [report the exact message](https://github.com/606scat/perch/issues). Leave system security protections enabled.
 
-```sh
-perch_download_dir="$(mktemp -d)"
-gh release download --repo 606scat/perch --pattern install-perch.command --dir "$perch_download_dir"
-/bin/bash "$perch_download_dir/install-perch.command"
-```
+## Update
 
-The installer downloads the latest published release through your authenticated GitHub CLI. It verifies the ZIP checksum, bundle identifier, code signature, and CPU support. It installs to `~/Applications/Perch.app`, or updates an existing `/Applications/Perch.app` when writable. It refuses ambiguous duplicate installations and version downgrades.
+From Perch’s menu-bar bird or Settings, choose **Check for updates…**. Review the new version, then choose to install and relaunch. Finish any open editor or file dialog first. Perch saves your latest changes and verifies a local backup before it permits the update.
 
-If the exact build is already installed, it leaves it alone and opens it. When updating, it asks Perch to quit normally so pending saves finish. If an editor, file dialog, or save error keeps Perch open, finish or cancel that interaction and rerun the command. The installer never force-quits it.
+You can enable automatic **checks** in Settings. You still choose when to install. Checks require an internet connection; your widgets work offline.
 
-## Data and backups
+**Coming from 0.1 or 0.2?** Those builds do not have the updater. Quit Perch, download the latest disk image, and replace the existing app in Applications once. Future updates can happen inside Perch. Replacing the app does not replace its separate data folder.
 
-Your data stays at `~/Library/Application Support/Perch/data.json`, outside the app bundle. Notes, drafts, snippets, projects, file references, focus state, and preferences remain yours on that Mac. Updating does not sync or copy another person's data. Apple Reminders remains in the user's Apple account.
+## Data and recovery
 
-Before replacement, the installer backs up that local folder and the previous app under `~/Library/Application Support/Perch Backups/`. It verifies the saved JSON backup before installing. If recovery is needed, ask Codex to inspect the current file and available backups with Perch closed; restoring an older backup must be an explicit choice because it can discard newer edits.
+Your data lives at `~/Library/Application Support/Perch/data.json`, independent of the app’s location. Each Mac has its own data. In-app updates keep exact JSON snapshots under `~/Library/Application Support/Perch Backups/`. Format upgrades also create `Migration Backups` beside the live data file.
 
-A failed download or checksum leaves the installed app and saved data unchanged. A second installer stops at `.update-lock`; if an installer crashed, Codex should check that the recorded PID is no longer running before removing only that stale lock. A stale kernel `.data.lock` file is harmless; the kernel releases ownership when its process stops.
+If you need to recover, quit Perch and copy the current data somewhere safe before choosing a backup. Restoring a backup discards changes made after that snapshot, so Perch does not restore one on its own. A malformed or newer-format file opens in a protected state instead of being replaced with empty data.
 
-## macOS approval
+Apple Reminders, notifications, and login startup require your own macOS permissions. Choose a Reminders list in Perch Settings after granting access. Permission retention across updates remains under macOS control.
 
-The initial private build uses an Apple Development certificate and is not notarized. macOS may require an explicit first-open approval in System Settings → Privacy & Security → Open Anyway. Do not disable system protections to skip this. The owner needs a Developer ID Application certificate and notarization for normal distribution without that development-build limitation. [Apple distribution guidance](https://developer.apple.com/macos/distribution/)
+## Optional command-line installer
 
-App data is independent of macOS permission decisions. Initial installation, moving from an earlier ad-hoc build, certificate changes, or macOS policy may require Reminders/notification approval again. Continue using the same signing team/identity for later releases; do not promise that macOS can never ask again.
+The release also includes `install-perch.command` for scripted installation. It uses macOS’s built-in `curl`, checks the archive checksum and bundle signature, backs up existing app/data, and refuses downgrades. No GitHub sign-in is required. Download it from the [latest release](https://github.com/606scat/perch/releases/latest), inspect it, and run it if you prefer this route.
 
-## Verify after installing
-
-Open Settings in Perch and read the version/build near the bottom. Check an existing note, chosen appearance, and configured shortcut. New Macs start with their own empty data; existing Macs must retain theirs. Apple Reminders and notification permissions need the recipient's consent. Intel execution, first-open Gatekeeper behavior, and the cofounder's account permissions require verification on that Mac.
+The installer never force-quits Perch. Resolve an open editor or save error, then retry. It serializes updates with a lock in the data folder. If a crashed installer leaves a lock, confirm that its recorded process has stopped before removing that lock; do not delete the data folder.

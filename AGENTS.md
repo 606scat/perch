@@ -4,7 +4,7 @@ Native SwiftUI/AppKit utility for macOS 14+. This repository is the source and r
 
 ## Installing or updating on another Mac
 
-Read `docs/INSTALL.md`. Use the latest published GitHub release and its installer. A source checkout and Xcode are not required to use Perch. GitHub authentication must belong to a user who can read this private repository. Never copy the owner's GitHub token, signing key, or local app data to another Mac.
+Read `docs/INSTALL.md`. Use the latest published disk image and native updater; the command-line installer remains an optional route. A source checkout and Xcode are not required to use Perch. Public downloads do not require GitHub authentication. Never copy signing keys, credentials, or local user data to another Mac.
 
 The same installer command handles first install, updates, and already-current installations. Do not replace it with a script that deletes the data folder. Do not disable Gatekeeper, delete quarantine attributes, force-quit Perch, or reset macOS privacy permissions to work around installation trouble. Report the exact macOS or GitHub error.
 

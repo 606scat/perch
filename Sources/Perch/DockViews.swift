@@ -9,6 +9,7 @@ extension DockWidget {
         case .focus: .focus; case .today: .today; case .notes: .notes; case .tray: .tray; case .snippets: .snippets; case .projects: .projects
         case .clipboard: .clipboard; case .calculator: .calculator; case .converter: .converter; case .clocks: .clocks
         case .countdowns: .countdowns; case .habits: .habits; case .breathing: .breathing; case .awake: .awake
+        case .colors: .colors; case .qr: .qr; case .textTools: .textTools; case .decisions: .decisions; case .doodle: .doodle; case .garden: .garden
         }
     }
     var summary: String {
@@ -25,8 +26,14 @@ extension DockWidget {
         case .clocks: "Compare cities and preview a meeting time."
         case .countdowns: "Count the days to dates that matter."
         case .habits: "Check in daily and see your streaks."
-        case .breathing: "Take a short, guided breathing pause."
+        case .breathing: "Unwind with sounds and guided breathwork."
         case .awake: "Keep your Mac awake for a chosen duration."
+        case .colors: "Pick screen colors and keep a small palette."
+        case .qr: "Turn a link or text into a scannable code."
+        case .textTools: "Count words and copy text in a new format."
+        case .decisions: "Flip a coin, roll a die, or pick an option."
+        case .doodle: "Draw a little something and save it."
+        case .garden: "Water a tiny plant and watch it grow."
         }
     }
 }
@@ -195,7 +202,7 @@ struct DockTile: View {
                 }.frame(width: 31, height: 29)
                 Text(store.data.focus.map { timeString($0.remaining(at: store.now)) } ?? "\(store.data.preferences.focusMinutes):00")
                     .font(.system(size: 9, weight: .medium, design: .monospaced)).foregroundStyle(Palette.primary)
-                Text(store.data.focus?.title ?? "Focus").font(.system(size: 6.5)).foregroundStyle(Palette.secondary).lineLimit(1)
+                Text(store.data.focus.map { $0.isRunning ? "Focusing" : "Paused" } ?? "Ready").font(.system(size: 6.5)).foregroundStyle(Palette.secondary).lineLimit(1)
             case .today:
                 HStack { Text("Today").font(.system(size: 8, weight: .semibold)).foregroundStyle(selected ? store.accentColor : Palette.primary); Spacer() }
                 if reminders.authorized {
@@ -216,11 +223,8 @@ struct DockTile: View {
                     }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                     Text("A clear page").font(.system(size: 6.5)).foregroundStyle(Palette.secondary)
                 } else {
-                    VStack(alignment: .leading, spacing: 3) {
-                        ForEach(store.data.notes.prefix(3)) { note in
-                            HStack(spacing: 3) { Circle().stroke(Palette.rule.opacity(0.5), lineWidth: 0.5).frame(width: 3, height: 3); Text(note.title).font(.system(size: 6.5)).lineLimit(1) }
-                        }
-                    }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    Text("\(store.data.notes.count)").font(.system(size: 22, weight: .medium, design: .rounded)).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(store.data.notes.count == 1 ? "saved note" : "saved notes").font(.system(size: 6.5)).foregroundStyle(Palette.secondary)
                 }
             case .tray:
                 WidgetGlyph(widget: .tray).frame(width: 26, height: 26).foregroundStyle(selected ? store.accentColor : Palette.rule.opacity(0.75)).padding(.top, 3)
@@ -228,18 +232,17 @@ struct DockTile: View {
             case .snippets:
                 HStack { Text("Snippets").font(.system(size: 7, weight: .semibold)).foregroundStyle(selected ? store.accentColor : Palette.primary); Spacer() }
                 WidgetGlyph(widget: .snippets).frame(width: 24, height: 24).foregroundStyle(selected ? store.accentColor : Palette.rule.opacity(0.75))
-                Text(store.data.snippets.first?.title ?? "Pin a reply").font(.system(size: 6.5)).foregroundStyle(Palette.secondary).lineLimit(1)
+                Text(store.data.snippets.isEmpty ? "Pin a reply" : "\(store.data.snippets.count) saved").font(.system(size: 6.5)).foregroundStyle(Palette.secondary).lineLimit(1)
             case .projects:
                 HStack { Text("Projects").font(.system(size: 7, weight: .semibold)).foregroundStyle(selected ? store.accentColor : Palette.primary); Spacer() }
                 let projects = Array(Set(store.data.links.map(\.project))).sorted()
                 if projects.isEmpty {
                     WidgetGlyph(widget: .projects).frame(width: 25, height: 25).foregroundStyle(selected ? store.accentColor : Palette.rule.opacity(0.7)).padding(.top, 5)
                 } else {
-                    VStack(alignment: .leading, spacing: 4) { ForEach(projects.prefix(3), id: \.self) { name in
-                        HStack(spacing: 4) { RoundedRectangle(cornerRadius: 1).fill(store.accentColor).frame(width: 4, height: 4); Text(name).font(.system(size: 7)).lineLimit(1) }
-                    } }.frame(maxHeight: .infinity, alignment: .top)
+                    Text("\(projects.count)").font(.system(size: 22, weight: .medium, design: .rounded)).frame(maxWidth: .infinity, alignment: .leading)
+                    Text("Open").font(.system(size: 6.5)).foregroundStyle(Palette.secondary)
                 }
-            case .clipboard, .calculator, .converter, .clocks, .countdowns, .habits, .breathing, .awake:
+            case .clipboard, .calculator, .converter, .clocks, .countdowns, .habits, .breathing, .awake, .colors, .qr, .textTools, .decisions, .doodle, .garden:
                 UtilityDockTile(widget: widget, selected: selected)
             }
         }
@@ -249,7 +252,7 @@ struct DockTile: View {
         .scaleEffect(hovering && !store.editingWidgets ? 1.025 : 1)
         .animation(.easeOut(duration: 0.15), value: hovering)
         .onHover { hovering = $0 }
-        .help(widget.title)
+        .help(widget == .focus ? (store.data.focus?.title ?? "Focus") : widget.title)
     }
 }
 
@@ -274,7 +277,7 @@ struct WidgetGallery: View {
     @State private var query = ""
     @State private var onlyAdded = false
     private var matches: [DockWidget] {
-        DockWidget.allCases.filter { (!onlyAdded || store.data.preferences.widgets.contains($0)) && (query.isEmpty || ($0.title + " " + $0.summary).localizedCaseInsensitiveContains(query)) }
+        DockWidget.libraryOrder.filter { (!onlyAdded || store.data.preferences.widgets.contains($0)) && (query.isEmpty || ($0.title + " " + $0.summary).localizedCaseInsensitiveContains(query)) }
     }
     var body: some View {
             VStack(alignment: .leading, spacing: 10) {
@@ -329,7 +332,7 @@ struct FocusDetailView: View {
             if let focus = store.data.focus {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(focus.title).font(.system(size: 11, weight: .medium)).lineLimit(2)
+                        ScrollView { Text(focus.title).font(.system(size: 11, weight: .medium)).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading) }.frame(maxHeight: 30)
                         Text(focus.isRunning ? "Focusing" : "Paused").font(.system(size: 9)).foregroundStyle(Palette.secondary)
                     }
                     Spacer(minLength: 0)

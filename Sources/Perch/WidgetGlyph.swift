@@ -22,6 +22,27 @@ private struct WidgetGlyphPath: Shape {
             for point in points.dropFirst() { p.addLine(to: CGPoint(x: point.0, y: point.1)) }
         }
         switch widget {
+        case .colors:
+            line([(14, 3), (21, 10), (18, 13), (11, 6), (14, 3)])
+            line([(12, 8), (4, 16), (3, 21), (8, 20), (16, 12)])
+            line([(7, 14), (10, 17)])
+        case .qr:
+            for (x, y) in [(3.0, 3.0), (14.0, 3.0), (3.0, 14.0)] { p.addRoundedRect(in: CGRect(x: x, y: y, width: 7, height: 7), cornerSize: CGSize(width: 1, height: 1)) }
+            line([(14, 14), (17, 14), (17, 17), (21, 17), (21, 21), (14, 21), (14, 18)])
+        case .textTools:
+            line([(3, 5), (15, 5), (15, 8)]); line([(3, 8), (3, 5)]); line([(9, 5), (9, 20)]); line([(5, 20), (13, 20)])
+            line([(16, 12), (22, 12)]); line([(19, 12), (19, 20)])
+        case .decisions:
+            p.addRoundedRect(in: CGRect(x: 3, y: 3, width: 18, height: 18), cornerSize: CGSize(width: 4, height: 4))
+            for (x, y) in [(7.0, 7.0), (12.0, 12.0), (17.0, 17.0)] { p.addEllipse(in: CGRect(x: x - 0.7, y: y - 0.7, width: 1.4, height: 1.4)) }
+        case .doodle:
+            p.move(to: CGPoint(x: 3, y: 16)); p.addCurve(to: CGPoint(x: 15, y: 5), control1: CGPoint(x: 3, y: 8), control2: CGPoint(x: 11, y: 1))
+            p.addCurve(to: CGPoint(x: 8, y: 19), control1: CGPoint(x: 21, y: 10), control2: CGPoint(x: 2, y: 13))
+            p.addCurve(to: CGPoint(x: 21, y: 13), control1: CGPoint(x: 13, y: 23), control2: CGPoint(x: 14, y: 11))
+        case .garden:
+            line([(7, 16), (17, 16), (16, 22), (8, 22), (7, 16)]); line([(12, 16), (12, 8)])
+            p.move(to: CGPoint(x: 12, y: 11)); p.addQuadCurve(to: CGPoint(x: 4, y: 4), control: CGPoint(x: 4, y: 11)); p.addQuadCurve(to: CGPoint(x: 12, y: 11), control: CGPoint(x: 12, y: 3))
+            p.move(to: CGPoint(x: 12, y: 8)); p.addQuadCurve(to: CGPoint(x: 20, y: 2), control: CGPoint(x: 12, y: 1)); p.addQuadCurve(to: CGPoint(x: 12, y: 8), control: CGPoint(x: 20, y: 9))
         case .focus:
             line([(13.5, 2.5), (5.5, 13), (11, 13), (10.5, 21.5), (18.5, 10.5), (13, 10.5), (13.5, 2.5)])
         case .today:

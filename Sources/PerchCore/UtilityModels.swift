@@ -64,7 +64,8 @@ public struct DailyHabit: Codable, Identifiable, Equatable, Sendable {
 public struct BreathingSession: Equatable, Sendable {
     public var startedAt: Date
     public var duration: TimeInterval
-    public init(minutes: Int, now: Date = Date()) { startedAt = now; duration = Double(max(1, min(5, minutes))) * 60 }
+    public var mode: RelaxMode
+    public init(minutes: Int, now: Date = Date(), mode: RelaxMode = .breathing) { startedAt = now; self.mode = mode; duration = Double(max(1, min(mode == .breathing ? 5 : 60, minutes))) * 60 }
     public func remaining(at now: Date) -> TimeInterval { max(0, duration - max(0, now.timeIntervalSince(startedAt))) }
     public func inhale(at now: Date) -> Bool { max(0, now.timeIntervalSince(startedAt)).truncatingRemainder(dividingBy: 10) < 4 }
     public func expansion(at now: Date) -> Double {

@@ -118,6 +118,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Settings").font(.system(size: 16, weight: .semibold)).padding(.top, 16)
                 AppearanceSettings()
+                if let updates = store.updates { Divider(); UpdateSettings(updates: updates) }
                 Divider()
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Apple Reminders").font(.headline)

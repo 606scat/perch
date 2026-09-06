@@ -359,32 +359,52 @@ private struct HabitEditor: View {
 struct BreathingWidgetView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var minutes = 1
     var body: some View {
-        VStack(spacing: 12) {
-            HStack { Text("Breathing").font(.system(size: 14, weight: .semibold)); Spacer(); if let session = store.breathingSession { Text(timeString(session.remaining(at: store.now))).monospacedDigit().foregroundStyle(Palette.secondary) } }
-            if let session = store.breathingSession {
-                if store.expanded && !reduceMotion {
-                    TimelineView(.animation(minimumInterval: 1 / 30)) { context in breathingCircle(session: session, at: context.date, animated: true) }
-                } else { breathingCircle(session: session, at: store.now, animated: false) }
-                Button("End session") { store.breathingSession = nil }.buttonStyle(.bordered)
-            } else {
-                breathingCircle(session: nil, at: store.now, animated: false)
-                HStack { Picker("Duration", selection: $minutes) { ForEach([1, 2, 3, 5], id: \.self) { Text("\($0) min").tag($0) } }.labelsHidden().frame(width: 90); Spacer(); Button("Begin") { store.breathingSession = BreathingSession(minutes: minutes); store.now = Date() }.buttonStyle(.borderedProminent).foregroundStyle(Palette.onAccent) }
+        VStack(alignment: .leading, spacing: 11) {
+            HStack {
+                Text("Relax").font(.system(size: 14, weight: .semibold)); Spacer()
+                if let session = store.breathingSession { Text(timeString(session.remaining(at: store.now))).monospacedDigit().foregroundStyle(Palette.secondary) }
+                else { WidgetGlyph(widget: .breathing).frame(width: 25, height: 25).foregroundStyle(store.accentColor) }
             }
-            Text("In for 4 seconds, out for 6. Go at a comfortable pace.").font(.system(size: 10)).foregroundStyle(Palette.secondary).multilineTextAlignment(.center)
+            if let session = store.breathingSession {
+                if store.expanded && !reduceMotion && session.mode == .breathing {
+                    TimelineView(.animation(minimumInterval: 1 / 30)) { context in breathingCircle(session, at: context.date, animated: true) }
+                } else { breathingCircle(session, at: store.now, animated: false) }
+            } else {
+                Text("Make a little space.").font(.system(size: 21, weight: .medium, design: .rounded))
+                Text("A quiet pause, or five minutes of gentle breathing. You choose the sound.").font(.system(size: 12)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
+                Picker("Session", selection: Binding(get: { store.play.relax.mode }, set: { store.play.relax.mode = $0; store.play.relax.minutes = 5 })) {
+                    ForEach(RelaxMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }.pickerStyle(.segmented)
+                Picker("Duration", selection: Binding(get: { store.play.relax.minutes }, set: { store.play.relax.minutes = $0 })) {
+                    ForEach(store.play.relax.mode == .breathing ? [1, 3, 5] : [5, 10, 15, 30], id: \.self) { Text("\($0) minutes").tag($0) }
+                }
+            }
+            HStack {
+                Toggle("Ambient sound", isOn: Binding(get: { store.play.relax.soundEnabled }, set: { store.play.relax.soundEnabled = $0 })).font(.system(size: 12))
+                Spacer(minLength: 3)
+                Picker("Sound", selection: Binding(get: { store.play.relax.sound }, set: { store.play.relax.sound = $0 })) { ForEach(AmbientSound.allCases, id: \.self) { Text($0.title).tag($0) } }.labelsHidden().frame(width: 110).disabled(!store.play.relax.soundEnabled)
+            }
+            if store.breathingSession == nil {
+                HStack { Text("Volume").font(.system(size: 11)).foregroundStyle(Palette.secondary); Slider(value: Binding(get: { store.play.relax.volume }, set: { store.play.relax.volume = $0 }), in: 0...1).disabled(!store.play.relax.soundEnabled).accessibilityLabel("Relax sound volume") }
+            }
+            Toggle("Spoken guidance", isOn: Binding(get: { store.play.relax.voiceEnabled }, set: { store.play.relax.voiceEnabled = $0 })).font(.system(size: 12))
+            Spacer(minLength: 0)
+            if store.breathingSession != nil { Button("End session") { store.breathingSession = nil }.buttonStyle(.bordered) }
+            else { Button(store.play.relax.mode == .breathing ? "Start breathwork" : "Start relaxing") { store.startRelax() }.buttonStyle(BlueActionStyle()) }
+            Text("Breathe gently, at a pace that feels comfortable.").font(.system(size: 10)).foregroundStyle(Palette.secondary).fixedSize(horizontal: false, vertical: true)
         }.padding(14)
     }
-    private func breathingCircle(session: BreathingSession?, at date: Date, animated: Bool) -> some View {
+    private func breathingCircle(_ session: BreathingSession, at date: Date, animated: Bool) -> some View {
         ZStack {
             Circle().stroke(store.accentColor.opacity(0.25), lineWidth: 1).frame(width: 136, height: 136)
             Circle().fill(store.accentColor.opacity(0.14)).frame(width: 112, height: 112)
-                .scaleEffect(animated ? 0.70 + 0.30 * (session?.expansion(at: date) ?? 1) : 1)
+                .scaleEffect(animated ? 0.70 + 0.30 * session.expansion(at: date) : 1)
             VStack(spacing: 5) {
-                Text(session == nil ? "A little pause" : session!.inhale(at: date) ? "Breathe in" : "Breathe out").font(.system(size: 14, weight: .medium))
-                Text(session == nil ? "Ready when you are" : session!.inhale(at: date) ? "Gently" : "Let it go").font(.system(size: 10)).foregroundStyle(Palette.secondary)
+                Text(session.mode == .relax ? "Just be here" : session.inhale(at: date) ? "Breathe in" : "Breathe out").font(.system(size: 14, weight: .medium))
+                Text(session.mode == .relax ? "No rush" : session.inhale(at: date) ? "4 seconds · gently" : "6 seconds · let go").font(.system(size: 10)).foregroundStyle(Palette.secondary)
             }
-        }.frame(maxWidth: .infinity).frame(height: 148).accessibilityElement(children: .combine)
+        }.frame(maxWidth: .infinity).frame(height: 146).accessibilityElement(children: .combine)
     }
 }
 

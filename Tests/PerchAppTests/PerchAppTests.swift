@@ -235,7 +235,7 @@ import PerchCore
     #expect(store.clockInterval == 60)
     #expect(store.toast?.hasPrefix("Focus complete") == true)
     store.data.priorityIDs = ["demo-1"]
-    store.tick(at: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
+    store.tick(at: Calendar.current.date(byAdding: .day, value: 1, to: end)!)
     #expect(store.data.priorityIDs.isEmpty)
 }
 

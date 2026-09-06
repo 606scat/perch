@@ -102,7 +102,7 @@ private func calendar(_ zone: String) -> Calendar {
     old.preferences.widgetShortcuts = ["notes": WidgetShortcut(keyCode: 45, modifiers: 6144, display: "⌃⌥N")]
     try Persistence.save(old, to: url)
     let source = try Data(contentsOf: url)
-    var expected = old; expected.version = 2; expected.utilities = UtilityData()
+    var expected = old; expected.version = 3; expected.utilities = UtilityData()
     let migrated = try Persistence.load(from: url)
     #expect(migrated == expected)
     #expect(try Data(contentsOf: url) == source)

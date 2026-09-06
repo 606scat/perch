@@ -32,7 +32,7 @@ fi
 destination="$app_parent/Perch.app"
 [[ ! -L "$data_dir" && ! -L "$destination" ]] || fail 'App or data folder is a symbolic link. Resolve it before updating.'
 mkdir -p "$app_parent" "$data_dir"
-[[ -w "$app_parent" ]] || fail "No write access to $app_parent. Ask Codex to install into your user Applications folder."
+[[ -w "$app_parent" ]] || fail "No write access to $app_parent. Move Perch to your user Applications folder and retry."
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/perch-install.XXXXXX")
 lock="$data_dir/.update-lock"
 locked=0
@@ -52,8 +52,9 @@ trap 'exit 130' INT TERM HUP
 if [[ -n "$local_dir" ]]; then
     cp "$local_dir/Perch-macOS-universal.zip" "$local_dir/SHA256SUMS" "$scratch/"
 else
-    command -v gh >/dev/null || fail 'GitHub CLI is required. Ask Codex to install gh, sign in, and retry.'
-    gh release download --repo "$repo" --pattern Perch-macOS-universal.zip --pattern SHA256SUMS --dir "$scratch" || fail "Couldn’t download the latest release. Confirm internet access and GitHub access to $repo."
+    for asset in Perch-macOS-universal.zip SHA256SUMS; do
+        /usr/bin/curl --fail --location --silent --show-error --proto '=https' --tlsv1.2 --connect-timeout 20 --max-time 600 --retry 2 "https://github.com/$repo/releases/latest/download/$asset" --output "$scratch/$asset" || fail 'Couldn’t download the latest release. Check your internet connection and retry.'
+    done
 fi
 expected=$(awk '$2 == "Perch-macOS-universal.zip" {print $1}' "$scratch/SHA256SUMS")
 [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || fail 'Missing or malformed archive checksum.'
@@ -70,7 +71,7 @@ incoming="$scratch/unpacked/Perch.app"
 plist="$incoming/Contents/Info.plist"
 [[ -f "$plist" && ! -L "$incoming" ]] || fail 'The release contains no valid Perch.app.'
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")" == local.af.perch ]] || fail 'Wrong application identifier.'
-/usr/bin/codesign --verify --strict "$incoming" || fail 'App signature verification failed.'
+/usr/bin/codesign --verify --deep --strict "$incoming" || fail 'App signature verification failed.'
 /usr/bin/lipo "$incoming/Contents/MacOS/Perch" -verify_arch "$(uname -m)" || fail 'This release does not support this Mac.'
 new_build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist")
 version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")

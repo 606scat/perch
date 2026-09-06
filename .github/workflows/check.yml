@@ -1,0 +1,24 @@
+name: Checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Swift version
+        run: swift --version
+      - name: Test behavior and migration safety
+        run: swift test
+      - name: Build app bundle
+        run: ./scripts/build.sh release
+      - name: Verify embedded code
+        run: codesign --verify --deep --strict build/Perch.app
+      - name: Check whitespace
+        run: git diff --check

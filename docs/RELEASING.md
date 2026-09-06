@@ -1,49 +1,63 @@
-# Prepare and publish a Perch update
+# Releasing Perch
 
-Only publish when af requests it. Packaging alone does not commit, push, tag, or publish. The first package is `0.1.0`, build `1`; it is a private development release, not a notarized public distribution.
+Publish only when the owner requests delivery. Packaging alone does not commit, push, tag, publish, or change visibility. Public source and downloads were authorized for version 0.3.0.
 
-## Compatibility
+## Compatibility checks
 
-Read the data contract in `AGENTS.md`. Keep the bundle ID and data path stable. Build numbers must strictly increase for published updates. Change `CFBundleShortVersionString` and `CFBundleVersion` in `Resources/Info.plist` for an authorized release; do not alter `PerchDataFormatVersion` or JSON `version` merely because the app version changes.
+Keep `local.af.perch` and the local data path stable. Increment the app version and build in `Resources/Info.plist`. Change `PerchDataFormatVersion` only when the data contract requires it, with exact migration backups and tests for supported older formats. Never lower the build number or overwrite existing release assets.
 
-Future fields need defaults and an old-data regression fixture. A breaking data-format change requires a migration that backs up and preserves the prior file before writing. A downgrade must never wipe or silently reinterpret a newer format. The installer already refuses lower app build numbers.
-
-## Local gates and package
+Run:
 
 ```sh
 swift test
-security find-identity -v -p codesigning
-PERCH_SIGNING_IDENTITY='THE_STABLE_CERTIFICATE_ID' ./scripts/package-release.sh
+git diff --check
+```
+
+Inspect the affected widgets in the native app. Exercise save/quit behavior, themes, long content, and any migration. Keep personal data and review captures out of Git.
+
+## Signing and packaging
+
+The build embeds Sparkle 2.9.6 and signs its nested helpers before the framework and app. The unused sandbox XPC services are omitted, as described by [Sparkle](https://sparkle-project.org/documentation/sandboxing/).
+
+For Xcode cloud signing, sign in to an Apple Developer account in **Xcode → Settings → Accounts**. Set `PERCH_SIGNING_IDENTITY` to the local Apple Development identity and `PERCH_DEVELOPMENT_TEAM` to its team identifier. The script creates a universal app and archive; Xcode then uses the account’s Developer ID signing service and uploads it for notarization. It does not export private keys. [Apple’s distribution guidance](https://developer.apple.com/developer-id/).
+
+```sh
+./scripts/notarize-xcode.sh upload
+# Once Apple has finished processing:
+./scripts/notarize-xcode.sh export
+```
+
+If export reports that processing is still in progress, retry **export** later. Do not upload the same build again. The export command prints the exact packaging command:
+
+```sh
+PERCH_PREBUILT_APP="/absolute/path/to/export/Perch.app" ./scripts/package-release.sh
 python3 scripts/test-installer.py
 ```
 
-Use the same signing team and certificate type across updates. The private initial package uses the existing Apple Development certificate on the owner's Mac. Do not commit or copy its private key. For standard distribution use a Developer ID Application identity and set `PERCH_NOTARY_PROFILE` to an existing Keychain profile; the packaging script submits, waits, staples, and validates when that option is set. [Apple signing and notarization](https://developer.apple.com/developer-id/)
+The prebuilt path is checked for the matching version/build, strict signature, stapled ticket, Gatekeeper acceptance, and both architectures. Packaging preserves that signature and ticket. The resulting DMG contains the notarized app; the outer disk image is not separately signed or notarized in this cloud-signing route.
 
-The package contains both `arm64` and `x86_64` slices. Output is `dist/vVERSION/` with `Perch-macOS-universal.zip`, `install-perch.command`, and `SHA256SUMS`. Review `codesign -dv --verbose=4 build/distribution/Perch.app` and verify the version/build in its Info.plist. Inspect runtime dependencies with `otool -L`; no dependency may point into the developer's checkout or a package-manager installation.
+Maintainers with a local Developer ID Application identity can instead set `PERCH_SIGNING_IDENTITY` to that identity, set `PERCH_NOTARY_PROFILE` to an existing `notarytool` Keychain profile, and run `scripts/package-release.sh`. This route submits and staples both the app and disk image. Credentials remain in Keychain.
 
-`test-installer.py` uses isolated temporary data and app directories. It checks first install, same-version no-op, update with byte-for-byte data preservation and backups, downgrade rejection, damaged downloads, concurrent installers, and unavailable downloads. Extend the cases when the installer or migration contract changes.
+Packaging produces `Perch.dmg`, `Perch-macOS-universal.zip`, `install-perch.command`, and `SHA256SUMS` in `dist/vVERSION`. The installer tests use that actual ZIP, including for isolated upgrade fixtures. Development builds are suitable for local work; shared releases should use a verified notarized app.
 
-Launch the built app and verify Settings reports the version/build. Test a quit with an open editor and confirm it cancels without discarding the editor. Reuse the still-valid feature/theme evidence in `docs/verification.md`; record any changed behavior and unresolved device gates.
+## Signed update feed
 
-## Publication, after owner authorization
+The app’s `SUPublicEDKey` identifies a release-signing key stored under the `local.af.perch` account by Sparkle’s `generate_keys` tool. Keep that private key in Keychain. Never regenerate or rotate it casually: installed apps trust the existing public key.
 
-Reconcile the remote's current main branch without force-pushing or discarding remote changes. Review and commit only Perch source, resources, tests, scripts, and documentation. Generated packages, app data, credentials, and review captures stay out of Git.
+The app requires a signed feed and verifies update archives before extraction. Silent automatic installation is disabled. The delegate blocks installation for open editors or protected storage, flushes pending saves, and creates an exact backup. The normal quit gate checks again before exit.
 
-Push the reviewed commit, create and push its matching `vVERSION` tag, then publish the three assets using GitHub CLI. Write release notes to `docs/releases/vVERSION.md` and use `--notes-file`.
+Write `docs/releases/vVERSION.md` and a short HTML counterpart for the update dialog, then run:
 
 ```sh
-gh release create vVERSION \
-  dist/vVERSION/Perch-macOS-universal.zip \
-  dist/vVERSION/install-perch.command \
-  dist/vVERSION/SHA256SUMS \
-  --repo 606scat/perch --verify-tag \
-  --title 'Perch vVERSION' --notes-file docs/releases/vVERSION.md
+./scripts/generate-appcast.sh
 ```
 
-Use normal releases in this private repo so the installer's latest-release lookup resolves them. If a future release is explicitly a GitHub prerelease, update the installation instructions to select its exact tag instead. Do not replace assets under an existing version; publish a higher build.
+This generates and signs `appcast.xml` using the matching ZIP. Do not edit the signed XML by hand. Regenerate it after any change. Publish the exact archive that was signed. See [Sparkle’s publishing guide](https://sparkle-project.org/documentation/publishing/).
 
-Download the published assets into a new temporary directory, verify their checksum, and compare the ZIP checksum to the local package. Confirm the release URL is accessible to the intended GitHub account. The cofounder can then use the same install/update prompt in `docs/INSTALL.md`.
+## Publish and verify
 
-## Recovery
+Commit scoped source, docs, and the lockfile. Tag the release version. Publish all four packaged assets and the release notes to `606scat/perch`. Make the assets available before pushing the new `appcast.xml` so installed apps cannot see an update whose download does not exist.
 
-Keep the failed release and affected data available for diagnosis. Do not advise running an old installer over a newer app. Prefer a fixed release with a higher build; manually restoring an old app or data backup needs explicit approval and a data-format compatibility check. Never automatically roll data back after the new app has started writing.
+Download the published assets into a new temporary folder with no GitHub credentials, verify the checksums, and compare the ZIP and DMG to the local packages. Mount the downloaded DMG read-only and verify its app signature and architectures. Check the anonymous update-feed response and use **Check for updates…** in the release app. Inspect the GitHub check run before reporting completion.
+
+Do not claim notarization, an actual upgrade on another Mac, or Intel execution from a successful local build. Record the evidence and remaining device gates in `docs/verification.md`.
