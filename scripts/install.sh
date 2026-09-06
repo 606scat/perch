@@ -90,7 +90,7 @@ if [[ -e "$destination" ]]; then
 fi
 # A directory lock serializes installers; the app also checks it before opening.
 if ! mkdir "$lock" 2>/dev/null; then
-    fail "An update lock exists at $lock. Wait for the other installer; if it crashed, ask Codex to confirm its recorded PID is stopped before removing only that lock."
+    fail "An update lock exists at $lock. Wait for the other installer; if it crashed, confirm its recorded PID is stopped before removing only that lock."
 fi
 locked=1
 echo "$$" > "$lock/pid"
@@ -127,4 +127,4 @@ rm -rf "$lock"; locked=0
 if [[ "$launch" == 1 ]]; then
     /usr/bin/open "$destination" || fail 'Installed successfully, but macOS did not open the app. Open Perch from Applications and review the macOS message.'
 fi
-echo 'If macOS blocks this private development build, review Privacy & Security → Open Anyway. This installer does not disable Gatekeeper or remove quarantine.'
+echo 'Open Perch from Applications. For installation help: https://github.com/606scat/perch/blob/main/docs/INSTALL.md'
