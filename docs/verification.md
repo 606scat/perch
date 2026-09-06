@@ -66,4 +66,6 @@ File tray supports existing local file/folder URLs. Promised-file drags without 
 
 ## Private release delivery
 
-The earlier v0.1.0 release and all three assets were verified by download, including an isolated install through its downloaded installer. Version 0.2.0 uses that same installer and private repository. Publication read-back for the new version will be recorded after it completes.
+Source commit `4f0963d` and tag `v0.2.0` were pushed to the existing private repository. [Perch v0.2.0](https://github.com/606scat/perch/releases/tag/v0.2.0) is a published normal release with the universal app ZIP, installer, and checksums. All three downloaded assets matched their local counterparts byte-for-byte; checksum verification passed. The downloaded installer then fetched the latest published release and successfully installed build 2 in an isolated temporary destination. The ZIP is 4,196,061 bytes.
+
+The primary local app at `build/Perch.app` was refreshed from that verified universal bundle and is running. A final read after restart confirmed the original preferences and saved collections, with no verification items remaining. No build, test, installer, or publishing job is still running. The actual recipient Mac remains an installation/permission gate; future updates use `docs/INSTALL.md` and `docs/RELEASING.md`.
