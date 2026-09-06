@@ -1,6 +1,6 @@
 # Verification — September 7, 2026
 
-Perch 0.3.0, build 3, data format 3. This report separates automated checks, observations in the native app, public delivery, and checks that still require another device.
+Perch 0.3.1, build 4, data format 3. Version 0.3.0 introduced the new widgets and public distribution; 0.3.1 corrects two legacy messages in the optional installer. This report separates automated checks, observations in the native app, public delivery, and checks that still require another device.
 
 ## Automated behavior and installation
 
@@ -33,7 +33,7 @@ The installer fixtures are extracted from the final release ZIP. Tests use tempo
 | Quick decisions | Flipped a coin, rolled a die, selected from two choices, and verified empty choices disable picking. |
 | Doodle | Drew strokes, undid one, cleared through confirmation, restored through Undo, and inspected Light and Dark canvases. |
 | Tiny garden | Inspected the initial seed and confirmed its complete instruction text after the final layout correction. Daily growth was checked by tests rather than watering the owner’s plant. |
-| Updates | Settings displays manual update checking and optional automatic checks. Public-feed verification is recorded below. |
+| Updates | The public signed feed reported 0.3.0 current, then offered 0.3.1. The native updater downloaded, installed, and relaunched into build 4. Saved data remained byte-for-byte unchanged; both new update snapshots matched it exactly. |
 | Restart and data | The owner’s prior JSON has an exact migration backup. Saved collections and unrelated preferences were preserved. Known QA text/drawing inputs were removed under the data lease while the app was quit; the original six widgets and Dark appearance were restored. |
 
 The prior running 0.2.0 app froze at the local day change: an Objective-C calendar notification entered SwiftUI publication from a background queue. The captured thread sample identified the deadlock. Version 0.3.0 explicitly hops that notification to the main actor and includes the regression test above.
@@ -52,11 +52,24 @@ The universal app contains arm64 and x86_64 slices targeting macOS 14. Its embed
 
 The public-history audit inspected all five earlier commits and their reachable content. Credential-pattern and sensitive-path scans found no matching secrets or local data. The current source scan likewise found none. Build output, review captures, signing credentials, and local data are excluded. The two README screenshots contain only the native Relax UI and a synthetic example URL.
 
-Public publication and anonymous asset/update-feed read-back are pending in this checkpoint; the delivery record will be updated after those checks.
+The [repository](https://github.com/606scat/perch) is public, MIT licensed, and has private vulnerability reporting enabled. [Perch 0.3.1](https://github.com/606scat/perch/releases/tag/v0.3.1) is a published normal release. Source commit `8f8dac6` and tag `v0.3.1` identify the patch; `00459af` publishes its matching signed feed after the assets became available. Earlier release assets were preserved.
+
+All four assets were downloaded without GitHub authentication and matched the local packages byte for byte. SHA-256 checks passed. The downloaded DMG was mounted read-only; its app passed strict nested-code, stapled-ticket, Gatekeeper, version/build, and architecture checks. Its Applications link was present. The downloaded installer then fetched the latest public ZIP and installed build 4 in an isolated destination without creating owner or sample data.
+
+| Published asset | Bytes |
+| --- | ---: |
+| Perch.dmg | 11,379,348 |
+| Perch-macOS-universal.zip | 10,784,842 |
+| install-perch.command | 7,313 |
+| SHA256SUMS | 256 |
+
+The downloaded feed matched the local XML. The archive and XML signatures were independently verified against the public key embedded in the app. The feed retains the prior version’s correct download URL. The native 0.3.0 → 0.3.1 update completed on this Mac, produced two exact local data backups, and relaunched the notarized build 4. Only one Perch process was running afterward.
+
+[GitHub’s Mac checks](https://github.com/606scat/perch/actions/runs/34051005837) passed for the release source: behavior tests, release build, strict embedded-code verification, and whitespace. The public README’s icon, screenshots, download links, and installation copy were also inspected in the browser.
 
 ## Remaining device and integration checks
 
-Intel execution, a first install on the recipient’s actual Mac, a complete older-to-newer Sparkle replacement, and permission retention across that upgrade were not exercised. Existing 0.1/0.2 users install the DMG once because those versions predate the updater.
+Intel execution, a first install on the recipient’s actual Mac, and permission retention on that Mac were not exercised. Existing 0.1/0.2 users install the DMG once because those versions predate the updater.
 
 Physical world-clock slider manipulation, horizontal/multiple-display dragging, full VoiceOver traversal, every accent/theme combination, changing System appearance externally while running, background notifications, login startup, and Apple Reminders account operations remain device checks. No Reminders permissions or account tasks were changed. File Tray accepts local file/folder URLs; promised-file drags without a local URL are not implemented.
 
