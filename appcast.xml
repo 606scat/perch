@@ -1,8 +1,24 @@
-<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+<?xml version="1.0" standalone="yes"?>
+<!-- sparkle-sign-warning:
 IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
---><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+-->
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
         <title>Perch</title>
+        <item>
+            <title>0.3.1</title>
+            <pubDate>Mon, 07 Sep 2026 01:14:17 +0700</pubDate>
+            <link>https://github.com/606scat/perch</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/606scat/perch/releases/tag/v0.3.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>4</sparkle:version>
+            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>A small installer correction</h2>
+<p>This patch updates the optional installer’s recovery and first-open messages for the public notarized release.</p>
+<p>All 20 widgets, your settings, and your saved data stay as they were in 0.3.0.</p>
+]]></description>
+            <enclosure url="https://github.com/606scat/perch/releases/download/v0.3.1/Perch-macOS-universal.zip" length="10784842" type="application/octet-stream" sparkle:edSignature="FVK/ueSXfYyaf8oz+pDPqzkP/HPiYt8KfzXjWLotbO1u4y/Iqi/iQa93lX8eeXoLrxJO4s+x86otSvPPFT3yAQ=="/>
+        </item>
         <item>
             <title>0.3.0</title>
             <pubDate>Mon, 07 Sep 2026 01:03:28 +0700</pubDate>
@@ -18,10 +34,11 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
 <p>Download a disk image and check for future updates inside Perch. Updates save your work and create a verified local data backup.</p>
 <p>This release also fixes a freeze caused by background macOS day-change notifications.</p>
 ]]></description>
-            <enclosure url="https://github.com/606scat/perch/releases/download/v0.3.0/Perch-macOS-universal.zip" length="10784854" type="application/octet-stream" sparkle:edSignature="Gn8ciZmm78J4mpRWWzSJz4JIanYlue5hmHS7LEGyeGCK/pWqfHXvheAhjqz5ya3s+/nActm/ob1XRbmIgPKeCw=="></enclosure>
+            <enclosure url="https://github.com/606scat/perch/releases/download/v0.3.0/Perch-macOS-universal.zip" length="10784854" type="application/octet-stream" sparkle:edSignature="Gn8ciZmm78J4mpRWWzSJz4JIanYlue5hmHS7LEGyeGCK/pWqfHXvheAhjqz5ya3s+/nActm/ob1XRbmIgPKeCw=="/>
         </item>
     </channel>
-</rss><!-- sparkle-signatures:
-edSignature: YHgmBdzsPCJtiVwyQ9ObtVWHdxf5xIWZ2Hvd0Fafw8EWS7VdW8w48+Nsoz3gGvqcySdZv3ZPbC3brLKusjxaAg==
-length: 1908
+</rss>
+<!-- sparkle-signatures:
+edSignature: OvkOTvPNSq9wlB35yGviIgzhlBslH6tvzcVdEhBmZqe2Z9PKJdKgUzvMsRjHVBndE7pSuc2yQUjdSD7eBYXJBg==
+length: 2985
 -->
