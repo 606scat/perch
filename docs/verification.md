@@ -73,3 +73,9 @@ The packaged app launched on this Mac. A normal Apple-event quit with Quick Capt
 Remaining recipient gates: private-repository access, macOS 14+, first-open approval for this development build, and Reminders/notification consent on the cofounder's Mac. Intel execution and actual recipient installation were not exercised. An update preserves app-owned data; macOS permission retention is governed by signing identity and OS policy and is not guaranteed.
 
 Release preparation, installer instructions, compatibility rules, backup recovery, and publication read-back are documented in `AGENTS.md`, `docs/INSTALL.md`, and `docs/RELEASING.md`. Build output, review captures, credentials, and local data are excluded from source delivery.
+
+## Publication verified
+
+Source commit `607c9bf` and tag `v0.1.0` were pushed to the existing private repository without replacing its history. [Perch v0.1.0](https://github.com/606scat/perch/releases/tag/v0.1.0) was published with the universal app ZIP, installer, and checksums. All three assets were downloaded from GitHub and matched their local counterparts byte-for-byte. The downloaded installer then successfully fetched the latest published release itself and installed it into an isolated temporary destination. This verifies the actual GitHub download path for the owner's authenticated account; the recipient still needs repository access.
+
+The packaged app is running on the owner's Mac. No build, test, installer, or publication job remains active. This task does not need to remain open for future updates; follow `docs/RELEASING.md` for a new release and `docs/INSTALL.md` on the recipient's Mac.
