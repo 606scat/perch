@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-06T15:01:17.102984+00:00",
+  "title": "Design System: Perch",
+  "extensions": {
+    "platform": "macOS",
+    "implementation": "SwiftUI and AppKit",
+    "units": "Native logical points; not CSS physical points.",
+    "previewPolicy": "Native source snippets are documented instead of HTML/CSS simulations; review captures show actual rendering.",
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent"
+      },
+      "accent-light": {
+        "role": "primary",
+        "displayName": "Accent light"
+      },
+      "accent-purple": {
+        "role": "primary",
+        "displayName": "Accent purple"
+      },
+      "accent-purple-light": {
+        "role": "primary",
+        "displayName": "Accent purple light"
+      },
+      "accent-pink": {
+        "role": "primary",
+        "displayName": "Accent pink"
+      },
+      "accent-pink-light": {
+        "role": "primary",
+        "displayName": "Accent pink light"
+      },
+      "accent-orange": {
+        "role": "primary",
+        "displayName": "Accent orange"
+      },
+      "accent-orange-light": {
+        "role": "primary",
+        "displayName": "Accent orange light"
+      },
+      "accent-green": {
+        "role": "primary",
+        "displayName": "Accent green"
+      },
+      "accent-green-light": {
+        "role": "primary",
+        "displayName": "Accent green light"
+      },
+      "accent-teal": {
+        "role": "primary",
+        "displayName": "Accent teal"
+      },
+      "accent-teal-light": {
+        "role": "primary",
+        "displayName": "Accent teal light"
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground"
+      },
+      "foreground-light": {
+        "role": "neutral",
+        "displayName": "Foreground light"
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Secondary"
+      },
+      "secondary-light": {
+        "role": "neutral",
+        "displayName": "Secondary light"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule"
+      },
+      "rule-light": {
+        "role": "neutral",
+        "displayName": "Rule light"
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Background"
+      },
+      "background-light": {
+        "role": "neutral",
+        "displayName": "Background light"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface"
+      },
+      "surface-light": {
+        "role": "neutral",
+        "displayName": "Surface light"
+      },
+      "tile": {
+        "role": "neutral",
+        "displayName": "Tile"
+      },
+      "tile-light": {
+        "role": "neutral",
+        "displayName": "Tile light"
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field"
+      },
+      "field-light": {
+        "role": "neutral",
+        "displayName": "Field light"
+      },
+      "rail-tint": {
+        "role": "neutral",
+        "displayName": "Rail tint"
+      },
+      "rail-tint-light": {
+        "role": "neutral",
+        "displayName": "Rail tint light"
+      },
+      "panel-tint": {
+        "role": "neutral",
+        "displayName": "Panel tint"
+      },
+      "panel-tint-light": {
+        "role": "neutral",
+        "displayName": "Panel tint light"
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "On accent"
+      },
+      "on-accent-light": {
+        "role": "neutral",
+        "displayName": "On accent light"
+      },
+      "warning": {
+        "role": "neutral",
+        "displayName": "Warning"
+      },
+      "warning-light": {
+        "role": "neutral",
+        "displayName": "Warning light"
+      },
+      "error": {
+        "role": "neutral",
+        "displayName": "Error"
+      },
+      "error-light": {
+        "role": "neutral",
+        "displayName": "Error light"
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "purpose": "Panel headings"
+      },
+      "body": {
+        "purpose": "Default panel text"
+      },
+      "label": {
+        "purpose": "Compact fields and rows"
+      },
+      "tile-title": {
+        "purpose": "Miniature rail titles"
+      },
+      "timer": {
+        "purpose": "Monospaced focus countdown"
+      }
+    },
+    "shadows": [
+      {
+        "name": "native-panel",
+        "value": "NSPanel.hasShadow = true",
+        "purpose": "Native elevation for both dock and flyout."
+      }
+    ],
+    "materials": [
+      {
+        "name": "glass",
+        "value": "PerchSurface: .hudWindow, .behindWindow, .active plus adaptive railTint or panelTint",
+        "purpose": "Default native glass; tint changes with effective appearance."
+      },
+      {
+        "name": "solid",
+        "value": "Palette.background; NSVisualEffectView omitted",
+        "purpose": "Glass background disabled; geometry unchanged."
+      }
+    ],
+    "motion": [
+      {
+        "name": "flyout-open",
+        "value": "260ms; CAMediaTimingFunction(0.22, 1, 0.36, 1); 8pt offset with fade",
+        "purpose": "Open a compact panel; follows Perch\u2019s persisted Smooth dock motion preference, enabled by default."
+      },
+      {
+        "name": "flyout-close",
+        "value": "180ms; CAMediaTimingFunction(0.22, 1, 0.36, 1)",
+        "purpose": "Dismiss panel; follows Perch\u2019s Smooth dock motion preference."
+      },
+      {
+        "name": "tile-hover",
+        "value": "150ms easeOut; scale 1.025",
+        "purpose": "Subtle hover feedback."
+      },
+      {
+        "name": "rail-update",
+        "value": "spring(response: 0.3, dampingFraction: 0.88)",
+        "purpose": "Widget changes; disabled with Reduce Motion."
+      },
+      {
+        "name": "dock-reveal",
+        "value": "340ms; CAMediaTimingFunction(0.25, 0.1, 0.25, 1)",
+        "purpose": "Reveal from edge peek; immediate when Smooth dock motion is disabled."
+      },
+      {
+        "name": "dock-tuck",
+        "value": "300ms after 3s dwell; CAMediaTimingFunction(0.25, 0.1, 0.25, 1)",
+        "purpose": "Retract after pointer exit when no protected interaction is active; immediate when Smooth dock motion is disabled."
+      }
+    ],
+    "iconography": {
+      "source": "Sources/Perch/WidgetGlyph.swift",
+      "grid": "24pt",
+      "stroke": "1.65pt",
+      "caps": "round",
+      "joins": "round",
+      "policy": "Reuse vector paths for widget identities; native SF Symbols for generic actions."
+    },
+    "evidence": [
+      ".impeccable/review/dock.png",
+      ".impeccable/review/notes-shortcut.png",
+      ".impeccable/review/widgets.png",
+      ".impeccable/review/tray-undo.png",
+      ".impeccable/review/theme-dark-settings.png",
+      ".impeccable/review/theme-light-settings.png",
+      ".impeccable/review/theme-light-purple-solid.png",
+      ".impeccable/review/theme-light-capture.png"
+    ],
+    "dockVisibility": {
+      "peekThickness": "18pt",
+      "edges": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "tracking": "Native revealed frame unions the full rail frame with the edge gap.",
+      "accessibility": "Command reveal is latched until pointer interaction or outside click."
+    },
+    "clock": {
+      "idleInterval": "60s",
+      "idleTolerance": "3s",
+      "activeFocusInterval": "1s",
+      "activeFocusTolerance": "0.1s",
+      "catchUp": "Wake, activation, and clock-change handling use actual elapsed time."
+    },
+    "motionPolicy": {
+      "preference": "Preferences.smoothDockMotion",
+      "default": true,
+      "settingsLabel": "Smooth dock motion",
+      "scope": "Native dock and flyout window transitions. Settings explains the app override of macOS Reduce Motion. Unrelated SwiftUI motion continues to follow the system preference."
+    },
+    "appearance": {
+      "source": "Sources/Perch/Appearance.swift",
+      "themeOptions": [
+        "System",
+        "Light",
+        "Dark"
+      ],
+      "defaults": {
+        "theme": "Dark",
+        "accent": "Blue",
+        "glassBackground": true
+      },
+      "authority": "NSApp.appearance only; nil for System, Aqua for Light, Dark Aqua for Dark. No preferredColorScheme overrides.",
+      "providers": "Cached adaptive NSColor providers resolve semantic colors at draw time.",
+      "accentVariants": {
+        "blue": {
+          "dark": "{colors.accent}",
+          "light": "{colors.accent-light}"
+        },
+        "purple": {
+          "dark": "{colors.accent-purple}",
+          "light": "{colors.accent-purple-light}"
+        },
+        "pink": {
+          "dark": "{colors.accent-pink}",
+          "light": "{colors.accent-pink-light}"
+        },
+        "orange": {
+          "dark": "{colors.accent-orange}",
+          "light": "{colors.accent-orange-light}"
+        },
+        "green": {
+          "dark": "{colors.accent-green}",
+          "light": "{colors.accent-green-light}"
+        },
+        "teal": {
+          "dark": "{colors.accent-teal}",
+          "light": "{colors.accent-teal-light}"
+        }
+      },
+      "editorTint": "All editor roots explicitly use the selected accent.",
+      "pressedAction": "Solid selected accent with adaptive onAccent foreground.",
+      "systemQA": "External OS appearance changes are not claimed as verified by this documentation."
+    }
+  },
+  "components": [
+    {
+      "name": "Dock tile",
+      "kind": "nav",
+      "description": "Shared live miniature in the dock, with hover and selected states.",
+      "refersTo": "dock-tile",
+      "native": {
+        "source": "Sources/Perch/DockViews.swift",
+        "symbol": "DockTile"
+      }
+    },
+    {
+      "name": "Accent action",
+      "kind": "button",
+      "description": "Selected-accent text and subtle idle fill; solid pressed fill with adaptive onAccent foreground; distinct disabled state.",
+      "refersTo": "blue-action",
+      "native": {
+        "source": "Sources/Perch/PanelView.swift",
+        "symbol": "BlueActionStyle"
+      }
+    },
+    {
+      "name": "Note field",
+      "kind": "input",
+      "description": "Adaptive compact title and description fields; inert semantic secondary empty-field labels, selected-accent focus outline, and Return to save.",
+      "refersTo": "note-field",
+      "native": {
+        "source": "Sources/Perch/LibraryViews.swift",
+        "symbol": "NotesView"
+      }
+    },
+    {
+      "name": "Feedback footer",
+      "kind": "custom",
+      "description": "Inset Undo or toast row that reserves 52 native points in panel sizing.",
+      "refersTo": "feedback",
+      "native": {
+        "source": "Sources/Perch/PanelView.swift",
+        "symbol": "PanelView"
+      }
+    },
+    {
+      "name": "Glass rail",
+      "kind": "nav",
+      "description": "Adaptive native glass or solid rail with an 18pt edge peek on all four edges; preserves 64pt vertical or 66pt horizontal child geometry.",
+      "native": {
+        "source": "Sources/Perch/DockViews.swift",
+        "symbol": "DockRail"
+      }
+    },
+    {
+      "name": "Anchored flyout",
+      "kind": "custom",
+      "description": "Native bubble whose pointer stays aligned as the frame is screen-clamped.",
+      "native": {
+        "source": "Sources/Perch/DockViews.swift",
+        "symbol": "FlyoutShape"
+      }
+    },
+    {
+      "name": "Widget gallery card",
+      "kind": "card",
+      "description": "Compact two-column cards with a 20pt shared glyph, 12pt title, 22pt add/remove control, 10pt description, and intrinsic-width 19pt-high grouped keyboard recorder. 10pt padding, 6pt internal spacing, 8pt grid gap; 460pt preferred panel height.",
+      "native": {
+        "source": "Sources/Perch/DockViews.swift",
+        "symbol": "WidgetGallery"
+      }
+    },
+    {
+      "name": "Appearance settings",
+      "kind": "custom",
+      "description": "System/Light/Dark picker, six selectable accent circles, and Glass background toggle; defaults Dark, Blue, glass on.",
+      "native": {
+        "source": "Sources/Perch/Appearance.swift",
+        "symbol": "AppearanceSettings"
+      }
+    }
+  ],
+  "narrative": {
+    "northStar": "A narrow strip of useful miniature widgets",
+    "overview": "Perch is a native macOS utility built with SwiftUI and AppKit. Its visual authority is the user's Vinz video and screenshot: match the slim charcoal glass dock, inset black tiles, electric blue accents, white system typography, miniature live contents, and small speech-bubble flyouts. The default remains Dark with Blue accent and glass enabled. User-selected Light or System appearance, six accent choices, and solid backgrounds adapt that same compact design; preserve its proportions and density.\n\nThe interface stays compact and tactile. Hover reveals the relevant tool without stealing keyboard focus; deliberate activation supports typing. Perch remains a provisional product name. The surface contract and reference provenance live in `docs/panel-brief.md` and `PRODUCT.md`.",
+    "keyCharacteristics": [
+      "Default charcoal glass and black inset tiles, with adaptive light and solid variants.",
+      "Miniature live information and one selected accent, defaulting to electric blue.",
+      "Small anchored bubbles with native desktop interaction.",
+      "Shared vector widget artwork across dock, gallery, and empty states."
+    ],
+    "rules": [],
+    "dos": [
+      "Do preserve the user's pinned Vinz material, proportions, density, and compact flyout direction.",
+      "Do reuse `DockTile`, `WidgetGlyph`, semantic `Palette` colors, the selected accent, native material, and native controls.",
+      "Do let `NSApp.appearance` govern the app and preserve readable light, dark, glass, and solid variants.",
+      "Do size feedback with the panel and keep Undo inside the bubble.",
+      "Do preserve keyboard shortcuts, pointer dismissal protections, accessible labels, and menu-bar access with the dock hidden."
+    ],
+    "donts": [
+      "Don't replace the native desktop surface with a mobile or web layout.",
+      "Don't enlarge the rail into a dashboard or replace its live miniature tiles with generic navigation icons.",
+      "Don't introduce a second widget icon family or rasterize the vector paths.",
+      "Don't treat removing a widget or a tray reference as deleting the user's underlying data."
+    ]
+  }
+}
