@@ -6,6 +6,20 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <channel>
         <title>Perch</title>
         <item>
+            <title>0.3.2</title>
+            <pubDate>Mon, 07 Sep 2026 13:46:08 +0700</pubDate>
+            <link>https://github.com/606scat/perch</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/606scat/perch/releases/tag/v0.3.2</sparkle:fullReleaseNotesLink>
+            <sparkle:version>5</sparkle:version>
+            <sparkle:shortVersionString>0.3.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>Rounded corners while tucked away</h2>
+<p>Fixes the square black corners that could show behind the dock when it tucks into the screen edge.</p>
+<p>Your widgets, settings, and saved data stay unchanged.</p>
+]]></description>
+            <enclosure url="https://github.com/606scat/perch/releases/download/v0.3.2/Perch-macOS-universal.zip" length="10789294" type="application/octet-stream" sparkle:edSignature="XzDDkhL8oe6weQOVRLtErcmCW8W/egpG7XXbQYgNg7Tb3iDMoWujiEmCXPOAl1ULfBwFN3myNqDb5C8LCX31BQ=="/>
+        </item>
+        <item>
             <title>0.3.1</title>
             <pubDate>Mon, 07 Sep 2026 01:14:17 +0700</pubDate>
             <link>https://github.com/606scat/perch</link>
@@ -39,6 +53,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </channel>
 </rss>
 <!-- sparkle-signatures:
-edSignature: OvkOTvPNSq9wlB35yGviIgzhlBslH6tvzcVdEhBmZqe2Z9PKJdKgUzvMsRjHVBndE7pSuc2yQUjdSD7eBYXJBg==
-length: 2985
+edSignature: 9TBVmBMO5BmeDutcT+wA+aCU8zbCcx8PbA+rx3gc/3OUR/8OrUPJXU9/HV6cgnMordtAtJhDSLjjCKnzi8fbCg==
+length: 4037
 -->
