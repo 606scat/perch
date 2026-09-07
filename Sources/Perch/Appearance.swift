@@ -56,7 +56,7 @@ struct PerchSurface: View {
     var rail = false
     var body: some View {
         if store.data.preferences.glassBackground {
-            DockMaterial().overlay(rail ? Palette.railTint : Palette.panelTint)
+            DockMaterial(roundedRail: rail).overlay(rail ? Palette.railTint : Palette.panelTint)
         } else { Palette.background }
     }
 }

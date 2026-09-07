@@ -1,5 +1,19 @@
 # Verification — September 7, 2026
 
+## Version 0.3.2 corner fix
+
+Build 5 retains data format 3. The native glass material now has its own mask, matching the rail's continuous 16pt rounded shape before the dock is clipped into its narrow peek strip. The mask follows vertical and horizontal resizing and is reused for unchanged sizes.
+
+- All **63 tests** passed, including corner alpha, interior opacity, vertical/horizontal resize, mask reuse, and mask removal checks.
+- All **8 installer scenarios** passed against the final notarized release ZIP.
+- Native Dark and Light, expanded and tucked, plus horizontal Top captures were inspected. The owner confirmed the reported black corners are gone against the original desktop backdrop. A fresh independent reviewer returned **ship** for this corner fix.
+- The original Left/Dark layout was restored. The owner's JSON remained byte-for-byte identical before and after replacement with the final notarized app.
+- Developer ID signature, nested-code verification, stapled ticket, Gatekeeper acceptance, and both binary architectures passed. The ZIP and feed signatures match the public key embedded in Perch.
+
+Public delivery verification is recorded after publication. The earlier release evidence below remains historical; the remaining device checks still apply.
+
+## Version 0.3.1 verification
+
 Perch 0.3.1, build 4, data format 3. Version 0.3.0 introduced the new widgets and public distribution; 0.3.1 corrects two legacy messages in the optional installer. This report separates automated checks, observations in the native app, public delivery, and checks that still require another device.
 
 ## Automated behavior and installation

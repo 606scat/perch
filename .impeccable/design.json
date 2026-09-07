@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-06T18:03:49.736265+00:00",
+  "generatedAt": "2026-09-07T06:47:20.571378+00:00",
   "title": "Design System: Perch",
   "extensions": {
     "platform": "macOS",
@@ -470,6 +470,15 @@
       "source": "Sources/Perch/Updates.swift",
       "ui": "Native Sparkle presentation; Settings Check for updates and automatic-check toggle.",
       "guard": "Save and backup before installation; native explanatory alert keeps Perch open when preparation fails."
+    },
+    "railMaterialMask": {
+      "source": "Sources/Perch/DockViews.swift",
+      "nativeView": "PerchMaterialView",
+      "geometry": "DockSurfaceGeometry: continuous RoundedRectangle, 16pt radius",
+      "mechanism": "NSVisualEffectView.maskImage uses the shared shape path before full-rail clipping to the 18pt peek strip.",
+      "activation": "PerchSurface passes roundedRail through DockMaterial.",
+      "cache": "Mask cached by bounds size; layout or flag changes refresh it when needed.",
+      "purpose": "Preserve rounded glass corners in the tucked rail; geometry, aesthetics, and interactions are unchanged."
     }
   },
   "components": [

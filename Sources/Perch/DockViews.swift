@@ -38,14 +38,50 @@ extension DockWidget {
     }
 }
 
+enum DockSurfaceGeometry {
+    static let cornerRadius: CGFloat = 16
+    static var shape: RoundedRectangle { RoundedRectangle(cornerRadius: cornerRadius, style: .continuous) }
+}
+
+// Behind-window material is composited by AppKit. Mask it at that boundary,
+// before the full rail is clipped down to the narrow screen-edge peek strip.
+final class PerchMaterialView: NSVisualEffectView {
+    var roundedRail = false { didSet { if oldValue != roundedRail { refreshMask() } } }
+    private var maskedSize = CGSize.zero
+
+    override func layout() {
+        super.layout()
+        refreshMask()
+    }
+
+    private func refreshMask() {
+        guard roundedRail, bounds.width > 0, bounds.height > 0 else {
+            maskImage = nil; maskedSize = .zero
+            return
+        }
+        guard maskedSize != bounds.size || maskImage == nil else { return }
+        maskedSize = bounds.size
+        maskImage = NSImage(size: bounds.size, flipped: false) { rect in
+            guard let context = NSGraphicsContext.current?.cgContext else { return false }
+            context.setFillColor(NSColor.black.cgColor)
+            context.addPath(DockSurfaceGeometry.shape.path(in: rect).cgPath)
+            context.fillPath()
+            return true
+        }
+    }
+}
+
 struct DockMaterial: NSViewRepresentable {
+    var roundedRail = false
     @Environment(\.colorScheme) private var colorScheme
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
+    func makeNSView(context: Context) -> PerchMaterialView {
+        let view = PerchMaterialView()
+        view.roundedRail = roundedRail
         view.material = colorScheme == .dark ? .hudWindow : .popover; view.blendingMode = .behindWindow; view.state = .active
         return view
     }
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+    func updateNSView(_ nsView: PerchMaterialView, context: Context) {
+        nsView.roundedRail = roundedRail
         let material: NSVisualEffectView.Material = colorScheme == .dark ? .hudWindow : .popover
         if nsView.material != material { nsView.material = material }
     }
@@ -118,7 +154,7 @@ struct DockRail: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .coordinateSpace(name: "PerchRail")
         .onPreferenceChange(WidgetOffsetPreference.self) { if store.widgetOffsets != $0 { store.widgetOffsets = $0 } }
-        .dockSurface(cornerRadius: 16)
+        .dockSurface(cornerRadius: DockSurfaceGeometry.cornerRadius)
         .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.88), value: store.data.preferences.widgets)
         .accentColor(store.accentColor)
         .foregroundStyle(Palette.primary)
