@@ -10,7 +10,11 @@ Build 5 retains data format 3. The native glass material now has its own mask, m
 - The original Left/Dark layout was restored. The owner's JSON remained byte-for-byte identical before and after replacement with the final notarized app.
 - Developer ID signature, nested-code verification, stapled ticket, Gatekeeper acceptance, and both binary architectures passed. The ZIP and feed signatures match the public key embedded in Perch.
 
-Public delivery verification is recorded after publication. The earlier release evidence below remains historical; the remaining device checks still apply.
+[Perch 0.3.2](https://github.com/606scat/perch/releases/tag/v0.3.2) is public. Source/tag commit `513da4f` contains the fix; `73f952d` publishes its signed feed after the assets became available. All four anonymously downloaded assets matched the local packages byte for byte and passed SHA-256 checks. The downloaded DMG app passed strict signature, stapled-ticket, Gatekeeper, version/build, and architecture checks. Its downloaded installer fetched and installed public build 5 in an isolated destination. The live notarized app reported “Perch 0.3.2 is currently the newest version available.” Owner data stayed byte-identical after restart and that update check.
+
+[GitHub Mac checks](https://github.com/606scat/perch/actions/runs/34092491206) passed for the release source: behavior tests, app build, embedded-code verification, and whitespace.
+
+The DMG is 11,380,250 bytes; the ZIP is 10,789,294 bytes; the optional installer is 7,313 bytes; SHA256SUMS is 256 bytes. This patch does not claim another complete Sparkle upgrade cycle; the actual 0.3.0 → 0.3.1 upgrade evidence below remains applicable to the unchanged updater. Earlier release evidence below remains historical, and the remaining device checks still apply.
 
 ## Version 0.3.1 verification
 
